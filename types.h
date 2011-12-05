@@ -47,6 +47,4 @@ typedef struct {
   fz_float_t  tolerance;
 } fz_bezier_t;
 
-static const fz_result_t FZ_RESULT_SUCCESS = 0;
-
 #endif // _FZ_TYPES_H_

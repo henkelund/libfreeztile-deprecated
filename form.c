@@ -3,6 +3,17 @@
 #include <stdio.h>
 #include "form.h"
 
+const char*
+fz_result_string(fz_result_t result)
+{
+  if (result == FZ_RESULT_SUCCESS) {
+    return "success";
+  } else if (result == FZ_RESULT_NOT_IMPLEMENTED) {
+    return "not implemented";
+  }
+  return "unknown result";
+}
+
 fz_result_t 
 fz_form_init(fz_form_t *form)
 {
@@ -19,8 +30,27 @@ fz_form_apply(
               fz_sample_buffer_t *samples,
               fz_form_t          *form)
 {
-    printf("%d samples applied\n", samples->size);
-    return FZ_RESULT_SUCCESS;
+  fz_uint_t i;
+  fz_uint_t instant;
+  for (i = 0; i < samples->size; ++i) {
+    instant = (fz_uint_t)(((fz_float_t)form->proto_size)*samples->instants[i]);
+    samples->values[i] = form->prototype[instant];
+  }
+  return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_oscillator_malloc(fz_oscillator_t *oscillator)
+{
+  oscillator = NULL;
+  return FZ_RESULT_NOT_IMPLEMENTED;
+}
+
+fz_result_t
+fz_oscillator_free(fz_oscillator_t *oscillator)
+{
+  oscillator = NULL;
+  return FZ_RESULT_NOT_IMPLEMENTED;
 }
 
 fz_result_t     
@@ -29,11 +59,21 @@ fz_oscillator_apply(
                     fz_oscillator_t *oscillator)
 {
   fz_uint_t i;
+  // calculate the progress rate
+  fz_float_t step_size =  
+    1.f/(oscillator->sample_rate/oscillator->frequency);
+    // sample rate divided by frequeny gives number of
+    // samples per period
+ 
+  // fill the instants part of the sample buffer
   for (i = 0; i < samples->size; ++i) {
     samples->instants[i] = oscillator->instant;
-    oscillator->instant = 
-      fmodf(oscillator->instant + 0.0453f, 1.0f);
+    oscillator->instant += step_size;
+    if (oscillator->instant >= 1.0f) {
+      oscillator->instant -= 1.0f;
+    }
   }
+
   fz_form_apply(samples, &(oscillator->form));
   return FZ_RESULT_SUCCESS;
 }
