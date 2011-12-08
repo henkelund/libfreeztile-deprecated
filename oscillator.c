@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "oscillator.h"
 #include "freeztile.h"
+#include "form.h"
 
 fz_result_t
 fz_oscillator_create(fz_oscillator_t **oscillator)

@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <pthread.h>
+#include <errno.h>
 #include "freeztile.h"
 
 fz_result_t 
@@ -48,7 +50,12 @@ fz_lock_create(fz_lock_t **lock)
 fz_result_t 
 fz_lock_destroy(fz_lock_t **lock)
 {
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    if (pthread_mutex_destroy(*lock) != 0 && errno != EINVAL) {
+        return FZ_RESULT_MUTEX_ERROR;
+    }
+    free(*lock);
+    *lock = NULL;
+    return FZ_RESULT_SUCCESS;
 }
 
 fz_result_t
@@ -100,7 +107,21 @@ fz_splbuf_create(
 fz_result_t
 fz_splbuf_destroy(fz_splbuf_t **buffer)
 {
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    fz_splbuf_t *buf = *buffer;
+    fz_lock_acquire(buf->lock);
+    if (buf->instants != NULL) {
+        free(buf->instants);
+    }
+    if (buf->values != NULL) {
+        free(buf->values);
+    }
+    fz_lock_release(buf->lock);
+    while (fz_lock_destroy(&buf->lock) != 0) {
+        // spin while lock is busy
+    }
+    free(buf);
+    *buffer = NULL;
+    return FZ_RESULT_SUCCESS;
 }
 
 fz_result_t

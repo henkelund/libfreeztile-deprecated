@@ -29,8 +29,6 @@
 #ifndef _FZ_TYPES_H_
 #define _FZ_TYPES_H_
 
-#include <pthread.h>
-
 typedef float           fz_float_t;
 
 typedef unsigned int    fz_uint_t;
