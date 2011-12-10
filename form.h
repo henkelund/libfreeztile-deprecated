@@ -72,12 +72,12 @@ fz_result_t fz_form_resize(
 
 /**
  * 
- * @param  fz_bezier_t *form
+ * @param  fz_bezier_t *bezier
+ * @param  fz_form_t   *form
  * @return fz_result_t 
  */
 fz_result_t fz_bezier_build_prototype(
                                       fz_bezier_t *bezier,
-                                      fz_form_t   *form,
-                                      fz_uint_t   size);
+                                      fz_form_t   *form);
 
 #endif // _FZ_FORM_H_

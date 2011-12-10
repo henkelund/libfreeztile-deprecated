@@ -60,9 +60,11 @@ fz_form_apply(
 {
     fz_uint_t i;
     fz_uint_t instant;
-    for (i = 0; i < samples->size; ++i) {
-        instant = (fz_uint_t)(((fz_float_t)form->proto_size)*samples->instants[i]);
-        samples->values[i] = form->prototype[instant];
+    if (form->proto_size > 0) {
+        for (i = 0; i < samples->size; ++i) {
+            instant = (fz_uint_t)(((fz_float_t)form->proto_size)*samples->instants[i]);
+            samples->values[i] = form->prototype[instant];
+        }
     }
     return FZ_RESULT_SUCCESS;
 }
@@ -121,13 +123,12 @@ fz_form_resize(
 fz_result_t 
 fz_bezier_build_prototype(
                           fz_bezier_t *bezier,
-                          fz_form_t   *form,
-                          fz_uint_t   size)
+                          fz_form_t   *form)
 {
+    // @todo Thread safety
+    
     // declare vars
-    fz_uint_t  p_size,      // prototype size in samples
-               p_byte_size, // .. in bytes
-               i;           // counter
+    fz_uint_t  i;           // counter
     fz_float_t pos,
                t,
                t2,          // pow(t, 2)
@@ -141,28 +142,14 @@ fz_bezier_build_prototype(
                c3y;
     
     // assign vars
-    p_size = size; //@todo bounds check
-    p_byte_size = sizeof(fz_splval_t)*p_size;
     c0y = bezier->start.y,
     c1y = (3*bezier->a.y)-(3*bezier->start.y),
     c2y = (3*bezier->start.y)-(2*(3*bezier->a.y))+(3*bezier->b.y),
     c3y = bezier->end.y-bezier->start.y+(3*bezier->a.y)-(3*bezier->b.y);
-    
-    // free old space if its too small
-    if (p_size > form->proto_avail_size && form->prototype != NULL) {
-        free(form->prototype);
-        form->prototype = NULL;
-    }
-    // allocate space prototype is empty
-    if (form->prototype == NULL) {
-        form->prototype = malloc(p_byte_size);
-        form->proto_avail_size = p_size;
-    }
-    form->proto_size = p_size;
-    
+
     // render it
-    for (i = 0; i < p_size; ++i) {
-        t = pos = ((float) i)/p_size; // first approximation of t = x
+    for (i = 0; i < form->proto_size; ++i) {
+        t = pos = ((float) i)/form->proto_size; // first approximation of t = x
         d = 1;
         f = (t > 0.f ? 1 : 0);
         while (fabs(f/d) > bezier->tolerance) {
