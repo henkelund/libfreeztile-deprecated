@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "form.h"
 #include "freeztile.h"
 
@@ -65,6 +66,57 @@ fz_form_apply(
     }
     return FZ_RESULT_SUCCESS;
 }
+
+fz_result_t
+fz_form_resize(
+               fz_form_t *form,
+               fz_uint_t size)
+{
+    // @todo Thread safety
+    fz_uint_t   i,           // new size counter
+                pi,          // prototype size counter
+                malloc_size; // 
+    
+    fz_splval_t *prototype; // new prototype
+    
+    if (size < form->proto_size) {
+        
+        for (i = 0; i < size; ++i) {
+            pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
+            form->prototype[i] = form->prototype[pi];
+        }
+        form->proto_size = size;
+        
+    } else if (size > form->proto_size) {
+        
+        if (size > form->proto_avail_size) {
+            
+            malloc_size = (fz_uint_t) pow(2, ceil(log(size)/log(2)));
+            prototype = malloc(malloc_size*sizeof(fz_splval_t));
+            memset(prototype, 0, malloc_size*sizeof(fz_splins_t));
+            if (form->prototype != NULL) {
+                for (i = 0; i < size; ++i) {
+                    pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
+                    prototype[i] = form->prototype[pi];
+                }
+                free(form->prototype);
+            }
+            form->prototype = prototype;
+            form->proto_avail_size = malloc_size;
+        } else {
+            
+            for (i = size - 1; size <= 0; --i) {
+                pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
+                form->prototype[i] = form->prototype[pi];
+            }
+        }
+        form->proto_size = size;
+    } /*else if (size == form->proto_size) {
+        // nothing to do..
+    }*/
+    return FZ_RESULT_SUCCESS;
+}
+
 
 fz_result_t 
 fz_bezier_build_prototype(
