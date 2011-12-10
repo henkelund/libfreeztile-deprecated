@@ -41,6 +41,7 @@ fz_lock_create(fz_lock_t **lock)
         return FZ_RESULT_MALLOC_ERROR;
     }
     if (pthread_mutex_init(mutex, NULL) != 0) {
+        free(mutex);
         return FZ_RESULT_MUTEX_ERROR;
     }
     *lock = mutex;
@@ -108,16 +109,14 @@ fz_result_t
 fz_splbuf_destroy(fz_splbuf_t **buffer)
 {
     fz_splbuf_t *buf = *buffer;
-    fz_lock_acquire(buf->lock);
+    while (fz_lock_destroy(&buf->lock) != 0)
+        ; // spin while lock is busy
+    
     if (buf->instants != NULL) {
         free(buf->instants);
     }
     if (buf->values != NULL) {
         free(buf->values);
-    }
-    fz_lock_release(buf->lock);
-    while (fz_lock_destroy(&buf->lock) != 0) {
-        // spin while lock is busy
     }
     free(buf);
     *buffer = NULL;
@@ -139,7 +138,7 @@ fz_splbuf_resize(
 
     if (size <= buffer->avail_size) {
         // requested size already available
-        // just raise the public value
+        // just update the public value
         buffer->size = size;
 
     } else { 
