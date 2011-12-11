@@ -34,13 +34,16 @@
 #include "freeztile.h"
 
 fz_result_t
-fz_list_create(fz_list_t **list)
+fz_list_create(
+               fz_list_t **list,
+               fz_uint_t item_size)
 {
     fz_list_t *l = malloc(sizeof(fz_list_t));
     if (l == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
     l->items = NULL;
+    l->item_size = item_size;
     l->size = 0;
     l->avail_size = 0;
     *list = l;
@@ -55,7 +58,7 @@ fz_list_add(
 {
     int          pos;
     fz_uint_t    size, malloc_size, i;
-    fz_pointer_t *items;
+    fz_pointer_t items;
     
     va_list opt;
     va_start(opt, item);
@@ -68,12 +71,12 @@ fz_list_add(
     
     if (size > list->avail_size) {
         malloc_size = (fz_uint_t) pow(2, ceil(log(size)/log(2)));
-        items = malloc(malloc_size*sizeof(fz_pointer_t));
+        items = malloc(malloc_size*list->item_size);
         if (items == NULL) {
             return FZ_RESULT_MALLOC_ERROR;
         }
         if (list->items != NULL) {
-            memcpy(items, list->items, list->size*sizeof(fz_pointer_t));
+            memcpy(items, list->items, list->size*list->item_size);
             free(list->items);
         }
         list->items = items;
@@ -82,13 +85,13 @@ fz_list_add(
 
     if (pos != list->size) {
         memmove(
-            list->items + pos + 1,
-            list->items + pos,
-            (list->size - pos)*sizeof(fz_pointer_t)
+            list->items + ((pos + 1)*list->item_size),
+            list->items + (pos*list->item_size),
+            (list->size - pos)*list->item_size
         );
     }
     
-    list->items[pos] = item;
+    memcpy(list->items + (pos*list->item_size), item, list->item_size);
     list->size = size;
     
     return FZ_RESULT_SUCCESS;

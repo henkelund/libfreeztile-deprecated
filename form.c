@@ -184,9 +184,9 @@ fz_multicurve_create(fz_multicurve_t **multicurve)
     if (mc == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    fz_list_create(&mc->forms);
-    fz_list_create(&mc->curves);
-    fz_list_create(&mc->proprtions);
+    fz_list_create(&mc->forms, sizeof(fz_pointer_t));
+    fz_list_create(&mc->curves, sizeof(fz_pointer_t));
+    fz_list_create(&mc->proprtions, sizeof(fz_float_t));
     *multicurve = mc;
     return FZ_RESULT_SUCCESS;
 }

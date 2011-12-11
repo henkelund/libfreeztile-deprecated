@@ -51,7 +51,8 @@ typedef struct {
 } fz_pointf_t;
 
 typedef struct {
-    fz_pointer_t *items;
+    fz_pointer_t items;
+    fz_uint_t    item_size;
     fz_uint_t    size;
     fz_uint_t    avail_size;
 } fz_list_t;

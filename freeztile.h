@@ -40,9 +40,12 @@ static const fz_result_t FZ_RESULT_LOCK_ERROR      = -(1 << 2);
 /**
  * 
  * @param  fz_list_t   **list
+ * @param  fz_uint_t   item_size
  * @return fz_result_t
  */
-fz_result_t fz_list_create(fz_list_t **list);
+fz_result_t fz_list_create(
+                           fz_list_t **list,
+                           fz_uint_t item_size);
 
 /**
  * 
