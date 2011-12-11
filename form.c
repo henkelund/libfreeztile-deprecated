@@ -121,9 +121,9 @@ fz_form_resize(
 
 
 fz_result_t 
-fz_bezier_build_prototype(
-                          fz_bezier_t *bezier,
-                          fz_form_t   *form)
+fz_curve_build_prototype(
+                         fz_curve_t  *curve,
+                         fz_form_t   *form)
 {
     // @todo Thread safety
     
@@ -142,32 +142,32 @@ fz_bezier_build_prototype(
                c3y;
     
     // assign vars
-    c0y = bezier->start.y,
-    c1y = (3*bezier->a.y)-(3*bezier->start.y),
-    c2y = (3*bezier->start.y)-(2*(3*bezier->a.y))+(3*bezier->b.y),
-    c3y = bezier->end.y-bezier->start.y+(3*bezier->a.y)-(3*bezier->b.y);
+    c0y = curve->start.y,
+    c1y = (3*curve->a.y)-(3*curve->start.y),
+    c2y = (3*curve->start.y)-(2*(3*curve->a.y))+(3*curve->b.y),
+    c3y = curve->end.y-curve->start.y+(3*curve->a.y)-(3*curve->b.y);
 
     // render it
     for (i = 0; i < form->proto_size; ++i) {
         t = pos = ((float) i)/form->proto_size; // first approximation of t = x
         d = 1;
         f = (t > 0.f ? 1 : 0);
-        while (fabs(f/d) > bezier->tolerance) {
+        while (fabs(f/d) > curve->tolerance) {
             ti = 1 - t;
             t2 = t*t;
             ti2 = ti*ti;
             
-            f = (ti2*ti*bezier->start.x) +
-                (3*ti2*t*bezier->a.x) +
-                (3*ti*t2*bezier->b.x) +
-                (t2*t*bezier->end.x) -
+            f = (ti2*ti*curve->start.x) +
+                (3*ti2*t*curve->a.x) +
+                (3*ti*t2*curve->b.x) +
+                (t2*t*curve->end.x) -
                 pos;
             
             d = -
-                (3*ti2*bezier->start.x) +
-                (3*bezier->a.x*(1 - 4*t + 3*t2)) +
-                (3*bezier->b.x*(2*t - 3*t2)) +
-                (3*t2*bezier->end.x);
+                (3*ti2*curve->start.x) +
+                (3*curve->a.x*(1 - 4*t + 3*t2)) +
+                (3*curve->b.x*(2*t - 3*t2)) +
+                (3*t2*curve->end.x);
 
             t -= f/d;
         }
@@ -175,4 +175,44 @@ fz_bezier_build_prototype(
     }
     
     return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t 
+fz_multicurve_create(fz_multicurve_t **multicurve)
+{
+    fz_multicurve_t *mc = malloc(sizeof(fz_multicurve_t));
+    if (mc == NULL) {
+        return FZ_RESULT_MALLOC_ERROR;
+    }
+    fz_list_create(&mc->forms);
+    fz_list_create(&mc->curves);
+    fz_list_create(&mc->proprtions);
+    *multicurve = mc;
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_multicurve_add(
+                  fz_multicurve_t *multicurve,
+                  fz_curve_t      *curve,
+                  ...)
+{
+    int pos;
+    va_list opt;
+    va_start(opt, curve);
+    pos = va_arg(opt, int);
+    va_end(opt);
+    if (pos < 0 || pos > multicurve->curves->size) {
+        pos = multicurve->curves->size;
+    }
+    
+    return FZ_RESULT_NOT_IMPLEMENTED;
+}
+
+fz_result_t
+fz_multicurve_build_prototype(
+                              fz_multicurve_t  *multicurve,
+                              fz_form_t        *form)
+{
+    return FZ_RESULT_NOT_IMPLEMENTED;
 }

@@ -29,12 +29,31 @@
 #ifndef _FZ_FREEZTILE_H_
 #define _FZ_FREEZTILE_H_
 
+#include <stdarg.h>
 #include "types.h"
 
 static const fz_result_t FZ_RESULT_SUCCESS         = 0;
 static const fz_result_t FZ_RESULT_NOT_IMPLEMENTED = -(1 << 0);
 static const fz_result_t FZ_RESULT_MALLOC_ERROR    = -(1 << 1);
-static const fz_result_t FZ_RESULT_MUTEX_ERROR     = -(1 << 2);
+static const fz_result_t FZ_RESULT_LOCK_ERROR      = -(1 << 2);
+
+/**
+ * 
+ * @param  fz_list_t   **list
+ * @return fz_result_t
+ */
+fz_result_t fz_list_create(fz_list_t **list);
+
+/**
+ * 
+ * @param  fz_list_t    **list
+ * @param  fz_pointer_t item
+ * @return fz_result_t
+ */
+fz_result_t fz_list_add(
+                        fz_list_t    *list,
+                        fz_pointer_t item,
+                        ...);
 
 /**
  * Allocate & initialize a mutex lock

@@ -35,6 +35,8 @@ typedef unsigned int    fz_uint_t;
 
 typedef int             fz_result_t;
 
+typedef void*           fz_pointer_t;
+
 // sample value (amplitude)
 typedef fz_float_t      fz_splval_t;
 
@@ -44,17 +46,23 @@ typedef fz_float_t      fz_splins_t;
 typedef pthread_mutex_t fz_lock_t;
 
 typedef struct {
+    fz_float_t x;
+    fz_float_t y;
+} fz_pointf_t;
+
+typedef struct {
+    fz_pointer_t *items;
+    fz_uint_t    size;
+    fz_uint_t    avail_size;
+} fz_list_t;
+
+typedef struct {
     fz_splins_t *instants;
     fz_splval_t *values;
     fz_uint_t   size;
     fz_uint_t   avail_size;
     fz_lock_t   *lock;
 } fz_splbuf_t;
-
-typedef struct {
-    fz_float_t x;
-    fz_float_t y;
-} fz_pointf_t;
 
 typedef struct {
     fz_uint_t   state;
@@ -77,6 +85,12 @@ typedef struct {
     fz_pointf_t a;
     fz_pointf_t b;
     fz_float_t  tolerance;
-} fz_bezier_t;
+} fz_curve_t;
+
+typedef struct {
+    fz_list_t   *forms;
+    fz_list_t   *curves;
+    fz_list_t   *proprtions;
+} fz_multicurve_t;
 
 #endif // _FZ_TYPES_H_

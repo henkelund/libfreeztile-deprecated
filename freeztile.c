@@ -33,6 +33,67 @@
 #include <errno.h>
 #include "freeztile.h"
 
+fz_result_t
+fz_list_create(fz_list_t **list)
+{
+    fz_list_t *l = malloc(sizeof(fz_list_t));
+    if (l == NULL) {
+        return FZ_RESULT_MALLOC_ERROR;
+    }
+    l->items = NULL;
+    l->size = 0;
+    l->avail_size = 0;
+    *list = l;
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_add(
+            fz_list_t    *list, 
+            fz_pointer_t item,
+            ...)
+{
+    int          pos;
+    fz_uint_t    size, malloc_size, i;
+    fz_pointer_t *items;
+    
+    va_list opt;
+    va_start(opt, item);
+    pos = va_arg(opt, int);
+    va_end(opt);
+    if (pos < 0 || pos > list->size) {
+        pos = list->size;
+    }
+    size = list->size + 1;
+    
+    if (size > list->avail_size) {
+        malloc_size = (fz_uint_t) pow(2, ceil(log(size)/log(2)));
+        items = malloc(malloc_size*sizeof(fz_pointer_t));
+        if (items == NULL) {
+            return FZ_RESULT_MALLOC_ERROR;
+        }
+        if (list->items != NULL) {
+            memcpy(items, list->items, list->size*sizeof(fz_pointer_t));
+            free(list->items);
+        }
+        list->items = items;
+        list->avail_size = malloc_size;
+    }
+
+    if (pos != list->size) {
+        memmove(
+            list->items + pos + 1,
+            list->items + pos,
+            (list->size - pos)*sizeof(fz_pointer_t)
+        );
+    }
+    
+    list->items[pos] = item;
+    list->size = size;
+    
+    return FZ_RESULT_SUCCESS;
+}
+
 fz_result_t 
 fz_lock_create(fz_lock_t **lock)
 {
@@ -42,7 +103,7 @@ fz_lock_create(fz_lock_t **lock)
     }
     if (pthread_mutex_init(mutex, NULL) != 0) {
         free(mutex);
-        return FZ_RESULT_MUTEX_ERROR;
+        return FZ_RESULT_LOCK_ERROR;
     }
     *lock = mutex;
     return FZ_RESULT_SUCCESS;
@@ -52,7 +113,7 @@ fz_result_t
 fz_lock_destroy(fz_lock_t **lock)
 {
     if (pthread_mutex_destroy(*lock) != 0 && errno != EINVAL) {
-        return FZ_RESULT_MUTEX_ERROR;
+        return FZ_RESULT_LOCK_ERROR;
     }
     free(*lock);
     *lock = NULL;
@@ -64,7 +125,7 @@ fz_lock_acquire(fz_lock_t *lock)
 {
     fz_result_t result;
     if ((result = pthread_mutex_lock(lock)) != 0) {
-        return FZ_RESULT_MUTEX_ERROR;
+        return FZ_RESULT_LOCK_ERROR;
     }
     return FZ_RESULT_SUCCESS;
 }
@@ -74,7 +135,7 @@ fz_lock_release(fz_lock_t *lock)
 {
     fz_result_t result;
     if ((result = pthread_mutex_unlock(lock)) != 0) {
-        return FZ_RESULT_MUTEX_ERROR;
+        return FZ_RESULT_LOCK_ERROR;
     }
     return FZ_RESULT_SUCCESS;
 }
@@ -183,7 +244,7 @@ fz_result_string(fz_result_t result)
         return "not implemented";
     } else if (result == FZ_RESULT_MALLOC_ERROR) {
         return "memory allocation error";
-    } else if (result == FZ_RESULT_MUTEX_ERROR) {
+    } else if (result == FZ_RESULT_LOCK_ERROR) {
         return "mutex error";
     }
     return "unknown result";
