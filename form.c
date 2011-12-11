@@ -43,6 +43,7 @@ fz_form_create(fz_form_t **form)
     f->prototype = NULL;
     f->proto_size = 0;
     f->proto_avail_size = 0;
+    f->version = 0;
     *form = f;
     return FZ_RESULT_SUCCESS;
 }
@@ -141,6 +142,11 @@ fz_curve_build_prototype(
                c2y,
                c3y;
     
+    // don't bother to render if curve hasn't changed (force option?)
+    if (curve->version == form->version) {
+        return FZ_RESULT_SUCCESS;
+    }
+    
     // assign vars
     c0y = curve->start.y,
     c1y = (3*curve->a.y)-(3*curve->start.y),
@@ -174,6 +180,7 @@ fz_curve_build_prototype(
         form->prototype[i] = c0y+t*(c1y+t*(c2y+t*c3y));
     }
     
+    form->version = curve->version;
     return FZ_RESULT_SUCCESS;
 }
 

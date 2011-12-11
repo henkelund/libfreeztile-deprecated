@@ -32,6 +32,17 @@
 #include <stdarg.h>
 #include "types.h"
 
+/**
+ * Convenience macro for list item retrieval
+ *
+ * @param  fz_list_t* list List to fetch from
+ * @param  fz_uint_t  i    Index of item to fetch
+ * @param  type       type Type of item
+ * @return type
+ */
+#define FZ_LIST_GET(list, i, type) \
+            (*(((type*)list->items) + i)) 
+
 static const fz_result_t FZ_RESULT_SUCCESS         = 0;
 static const fz_result_t FZ_RESULT_NOT_IMPLEMENTED = -(1 << 0);
 static const fz_result_t FZ_RESULT_MALLOC_ERROR    = -(1 << 1);

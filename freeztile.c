@@ -57,7 +57,7 @@ fz_list_add(
             ...)
 {
     int          pos;
-    fz_uint_t    size, malloc_size, i;
+    fz_uint_t    size, malloc_size;
     fz_pointer_t items;
     
     va_list opt;
@@ -70,7 +70,7 @@ fz_list_add(
     size = list->size + 1;
     
     if (size > list->avail_size) {
-        malloc_size = (fz_uint_t) pow(2, ceil(log(size)/log(2)));
+        malloc_size = size < 8 ? 8 : (fz_uint_t) pow(2, ceil(log(size)/log(2)));
         items = malloc(malloc_size*list->item_size);
         if (items == NULL) {
             return FZ_RESULT_MALLOC_ERROR;
@@ -248,7 +248,7 @@ fz_result_string(fz_result_t result)
     } else if (result == FZ_RESULT_MALLOC_ERROR) {
         return "memory allocation error";
     } else if (result == FZ_RESULT_LOCK_ERROR) {
-        return "mutex error";
+        return "lock error";
     }
     return "unknown result";
 }

@@ -70,6 +70,7 @@ typedef struct {
     fz_splval_t *prototype;
     fz_uint_t   proto_size;
     fz_uint_t   proto_avail_size;
+    fz_uint_t   version;
 } fz_form_t;
 
 typedef struct {
@@ -86,6 +87,7 @@ typedef struct {
     fz_pointf_t a;
     fz_pointf_t b;
     fz_float_t  tolerance;
+    fz_uint_t   version;
 } fz_curve_t;
 
 typedef struct {
