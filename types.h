@@ -29,7 +29,11 @@
 #ifndef _FZ_TYPES_H_
 #define _FZ_TYPES_H_
 
+#include <pthread.h>
+
 typedef float           fz_float_t;
+
+typedef int             fz_int_t;
 
 typedef unsigned int    fz_uint_t;
 
@@ -45,6 +49,8 @@ typedef fz_float_t      fz_splins_t;
 
 typedef pthread_mutex_t fz_lock_t;
 
+typedef void            (*fz_lirm_f)(void *item);
+
 typedef struct {
     fz_float_t x;
     fz_float_t y;
@@ -55,6 +61,7 @@ typedef struct {
     fz_uint_t    item_size;
     fz_uint_t    size;
     fz_uint_t    avail_size;
+    fz_lirm_f    remove;
 } fz_list_t;
 
 typedef struct {

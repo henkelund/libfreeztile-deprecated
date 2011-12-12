@@ -31,6 +31,7 @@
 #include <string.h>
 #include "form.h"
 #include "freeztile.h"
+#include "list.h"
 
 fz_result_t 
 fz_form_create(fz_form_t **form)
@@ -202,13 +203,8 @@ fz_result_t
 fz_multicurve_add(
                   fz_multicurve_t *multicurve,
                   fz_curve_t      *curve,
-                  ...)
+                  fz_int_t        pos)
 {
-    int pos;
-    va_list opt;
-    va_start(opt, curve);
-    pos = va_arg(opt, int);
-    va_end(opt);
     if (pos < 0 || pos > multicurve->curves->size) {
         pos = multicurve->curves->size;
     }

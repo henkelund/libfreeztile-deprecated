@@ -29,73 +29,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <pthread.h>
 #include <errno.h>
 #include "freeztile.h"
-
-fz_result_t
-fz_list_create(
-               fz_list_t **list,
-               fz_uint_t item_size)
-{
-    fz_list_t *l = malloc(sizeof(fz_list_t));
-    if (l == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    l->items = NULL;
-    l->item_size = item_size;
-    l->size = 0;
-    l->avail_size = 0;
-    *list = l;
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t
-fz_list_add(
-            fz_list_t    *list, 
-            fz_pointer_t item,
-            ...)
-{
-    int          pos;
-    fz_uint_t    size, malloc_size;
-    fz_pointer_t items;
-    
-    va_list opt;
-    va_start(opt, item);
-    pos = va_arg(opt, int);
-    va_end(opt);
-    if (pos < 0 || pos > list->size) {
-        pos = list->size;
-    }
-    size = list->size + 1;
-    
-    if (size > list->avail_size) {
-        malloc_size = size < 8 ? 8 : (fz_uint_t) pow(2, ceil(log(size)/log(2)));
-        items = malloc(malloc_size*list->item_size);
-        if (items == NULL) {
-            return FZ_RESULT_MALLOC_ERROR;
-        }
-        if (list->items != NULL) {
-            memcpy(items, list->items, list->size*list->item_size);
-            free(list->items);
-        }
-        list->items = items;
-        list->avail_size = malloc_size;
-    }
-
-    if (pos != list->size) {
-        memmove(
-            list->items + ((pos + 1)*list->item_size),
-            list->items + (pos*list->item_size),
-            (list->size - pos)*list->item_size
-        );
-    }
-    
-    memcpy(list->items + (pos*list->item_size), item, list->item_size);
-    list->size = size;
-    
-    return FZ_RESULT_SUCCESS;
-}
 
 fz_result_t 
 fz_lock_create(fz_lock_t **lock)
@@ -249,6 +184,8 @@ fz_result_string(fz_result_t result)
         return "memory allocation error";
     } else if (result == FZ_RESULT_LOCK_ERROR) {
         return "lock error";
+    } else if (result == FZ_RESULT_IOOB_ERROR) {
+        return "index out-of-bounds error";
     }
     return "unknown result";
 }

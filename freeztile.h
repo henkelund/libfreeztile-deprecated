@@ -29,45 +29,13 @@
 #ifndef _FZ_FREEZTILE_H_
 #define _FZ_FREEZTILE_H_
 
-#include <stdarg.h>
 #include "types.h"
-
-/**
- * Convenience macro for list item retrieval
- *
- * @param  fz_list_t* list List to fetch from
- * @param  fz_uint_t  i    Index of item to fetch
- * @param  type       type Type of item
- * @return type
- */
-#define FZ_LIST_GET(list, i, type) \
-            (*(((type*)list->items) + i)) 
 
 static const fz_result_t FZ_RESULT_SUCCESS         = 0;
 static const fz_result_t FZ_RESULT_NOT_IMPLEMENTED = -(1 << 0);
 static const fz_result_t FZ_RESULT_MALLOC_ERROR    = -(1 << 1);
 static const fz_result_t FZ_RESULT_LOCK_ERROR      = -(1 << 2);
-
-/**
- * 
- * @param  fz_list_t   **list
- * @param  fz_uint_t   item_size
- * @return fz_result_t
- */
-fz_result_t fz_list_create(
-                           fz_list_t **list,
-                           fz_uint_t item_size);
-
-/**
- * 
- * @param  fz_list_t    **list
- * @param  fz_pointer_t item
- * @return fz_result_t
- */
-fz_result_t fz_list_add(
-                        fz_list_t    *list,
-                        fz_pointer_t item,
-                        ...);
+static const fz_result_t FZ_RESULT_IOOB_ERROR      = -(1 << 3);
 
 /**
  * Allocate & initialize a mutex lock

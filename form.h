@@ -29,7 +29,6 @@
 #ifndef _FZ_FORM_H_
 #define _FZ_FORM_H_
 
-#include <stdarg.h>
 #include "types.h"
 
 static const unsigned int FZ_FORM_STATE_NONE       = 0;
@@ -92,12 +91,13 @@ fz_result_t fz_multicurve_create(fz_multicurve_t **multicurve);
  * 
  * @param fz_multicurve_t *multicurve
  * @param fz_curve_t      *curve
+ * @param fz_int_t        *curve
  * @return 
  */
 fz_result_t fz_multicurve_add(
                               fz_multicurve_t *multicurve,
                               fz_curve_t      *curve,
-                              ...);
+                              fz_int_t        pos);
 
 /**
  * 
