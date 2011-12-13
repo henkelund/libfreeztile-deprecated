@@ -81,6 +81,16 @@ fz_result_t fz_list_grow(
 
 /**
  * 
+ * @param  fz_list_t *list
+ * @param  fz_uint_t size
+ * @return fz_result
+ */
+fz_result_t fz_list_clear(
+                          fz_list_t *list,
+                          fz_uint_t size);
+
+/**
+ * 
  * @param  fz_list_t    *list
  * @param  fz_pointer_t item
  * @param  fz_uint_t    pos

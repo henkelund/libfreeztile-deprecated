@@ -73,6 +73,26 @@ fz_list_destroy(fz_list_t **list)
 }
 
 fz_result_t
+fz_list_clear(
+              fz_list_t *list,
+              fz_uint_t size)
+{
+    fz_result_t result;
+    fz_uint_t   i;
+    if ((result = fz_list_grow(list, size)) != FZ_RESULT_SUCCESS) {
+        return result;
+    }
+    if (list->remove != NULL) {
+        for (i = 0; i < list->size; ++i) {
+            list->remove(list->items + (i*list->item_size));
+        }
+    }
+    list->size = size;
+    memset(list->items, 0, list->item_size*list->size);
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
 fz_list_grow(
                fz_list_t *list,
                fz_uint_t min_size)
