@@ -65,16 +65,23 @@ fz_result_t fz_list_create(
 /**
  * 
  * @param  fz_list_t   **list
- * @param  fz_lirm_f   rm_func
  * @return fz_result_t
  */
-fz_result_t fz_list_destroy(
-                            fz_list_t **list,
-                            fz_lirm_f rm_func);
+fz_result_t fz_list_destroy(fz_list_t **list);
 
 /**
  * 
- * @param  fz_list_t    **list
+ * @param  fz_list_t *list
+ * @param  fz_uint_t min_size
+ * @return fz_result
+ */
+fz_result_t fz_list_grow(
+                         fz_list_t *list,
+                         fz_uint_t min_size);
+
+/**
+ * 
+ * @param  fz_list_t    *list
  * @param  fz_pointer_t item
  * @param  fz_uint_t    pos
  * @return fz_result_t
@@ -86,12 +93,22 @@ fz_result_t fz_list_insert(
 
 /**
  * 
- * @param  fz_list_t    **list
+ * @param  fz_list_t    *list
  * @param  fz_pointer_t item
  * @return fz_result_t
  */
 fz_result_t fz_list_append(
                            fz_list_t    *list,
                            fz_pointer_t item);
+
+/**
+ * 
+ * @param  fz_list_t    *list
+ * @param  fz_uint_t    pos
+ * @return fz_result_t
+ */
+fz_result_t fz_list_remove(
+                           fz_list_t *list,
+                           fz_uint_t pos);
 
 #endif // _FZ_LIST_H_

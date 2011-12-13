@@ -49,7 +49,9 @@ typedef fz_float_t      fz_splins_t;
 
 typedef pthread_mutex_t fz_lock_t;
 
+// fz_list_t function types
 typedef void            (*fz_lirm_f)(void *item);
+typedef void            (*fz_licmp_f)(void *a, void *b);
 
 typedef struct {
     fz_float_t x;
@@ -62,7 +64,13 @@ typedef struct {
     fz_uint_t    size;
     fz_uint_t    avail_size;
     fz_lirm_f    remove;
+    fz_licmp_f   compare;
 } fz_list_t;
+
+typedef struct {
+    fz_splins_t instant;
+    fz_splval_t value;
+} fz_sample_t;
 
 typedef struct {
     fz_splins_t *instants;
