@@ -47,12 +47,12 @@ fz_result_t fz_oscillator_destroy(fz_oscillator_t **oscillator);
 
 /**
  *
- * @param  fz_splbuf_t *samples
- * @param  fz_oscillator_t    *oscillator
+ * @param  fz_list_t        *samples
+ * @param  fz_oscillator_t  *oscillator
  * @return fz_result_r
  */
 fz_result_t fz_oscillator_apply(
-                                fz_splbuf_t     *samples,
+                                fz_list_t       *samples,
                                 fz_oscillator_t *oscillator);
 
 #endif // _FZ_OSCILLATOR_H_

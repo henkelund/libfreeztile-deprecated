@@ -36,6 +36,7 @@ static const fz_result_t FZ_RESULT_NOT_IMPLEMENTED = -(1 << 0);
 static const fz_result_t FZ_RESULT_MALLOC_ERROR    = -(1 << 1);
 static const fz_result_t FZ_RESULT_LOCK_ERROR      = -(1 << 2);
 static const fz_result_t FZ_RESULT_IOOB_ERROR      = -(1 << 3);
+static const fz_result_t FZ_RESULT_INVALID_ARG     = -(1 << 4);
 
 /**
  * Allocate & initialize a mutex lock
@@ -68,32 +69,6 @@ fz_result_t fz_lock_acquire(fz_lock_t *lock);
  * @return fz_result
  */
 fz_result_t fz_lock_release(fz_lock_t *lock);
-
-/**
- *
- * @param  fz_splbuf_t**
- * @param  fz_uint_t 
- * @return fz_result_t
- */
-fz_result_t fz_splbuf_create(
-                             fz_splbuf_t **buffer,
-                             fz_uint_t   size);
-/**
- *
- * @param  fz_splbuf_t**
- * @return fz_result_t
- */
-fz_result_t fz_splbuf_destroy(fz_splbuf_t **buffer);
-
-/**
- *
- * @param  fz_splbuf_t*
- * @param  fz_uint_t
- * @return fz_result_t
- */
-fz_result_t fz_splbuf_resize(
-                             fz_splbuf_t *buffer,
-                             fz_uint_t   size);
 
 /**
  * 

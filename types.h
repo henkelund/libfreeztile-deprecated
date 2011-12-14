@@ -73,14 +73,6 @@ typedef struct {
 } fz_sample_t;
 
 typedef struct {
-    fz_splins_t *instants;
-    fz_splval_t *values;
-    fz_uint_t   size;
-    fz_uint_t   avail_size;
-    fz_lock_t   *lock;
-} fz_splbuf_t;
-
-typedef struct {
     fz_uint_t   state;
     fz_splval_t *prototype;
     fz_uint_t   proto_size;

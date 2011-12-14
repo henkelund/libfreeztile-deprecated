@@ -52,12 +52,12 @@ fz_result_t fz_form_destroy(fz_form_t **form);
 
 /**
  *
- * @param  fz_splbuf_t *samples
+ * @param  fz_list_t *samples
  * @param  fz_form_t *form
  * @return fz_result
  */
 fz_result_t fz_form_apply(
-                          fz_splbuf_t *samples,
+                          fz_list_t   *samples,
                           fz_form_t   *form);
 
 /**

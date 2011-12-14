@@ -57,15 +57,21 @@ fz_form_destroy(fz_form_t **form)
 
 fz_result_t
 fz_form_apply(
-              fz_splbuf_t *samples,
+              fz_list_t   *samples,
               fz_form_t   *form)
 {
     fz_uint_t i;
     fz_uint_t instant;
+    
+    if (samples->item_size != sizeof(fz_sample_t)) {
+        return FZ_RESULT_INVALID_ARG;
+    }
+    
     if (form->proto_size > 0) {
         for (i = 0; i < samples->size; ++i) {
-            instant = (fz_uint_t)(((fz_float_t)form->proto_size)*samples->instants[i]);
-            samples->values[i] = form->prototype[instant];
+            instant = (fz_uint_t)
+                    (FZ_LIST_REF(samples, i, fz_sample_t)->instant*form->proto_size);
+            FZ_LIST_REF(samples, i, fz_sample_t)->value = form->prototype[instant];
         }
     }
     return FZ_RESULT_SUCCESS;

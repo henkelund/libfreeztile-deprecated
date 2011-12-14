@@ -30,6 +30,7 @@
 #include "oscillator.h"
 #include "freeztile.h"
 #include "form.h"
+#include "list.h"
 
 fz_result_t
 fz_oscillator_create(fz_oscillator_t **oscillator)
@@ -58,19 +59,22 @@ fz_oscillator_destroy(fz_oscillator_t **oscillator)
 
 fz_result_t     
 fz_oscillator_apply(
-                    fz_splbuf_t     *samples,
+                    fz_list_t       *samples,
                     fz_oscillator_t *oscillator)
 {
     fz_uint_t i;
-    // calculate the progress rate
-    fz_float_t step_size =  
-        1.f/(oscillator->sample_rate/oscillator->frequency);
-        // sample rate divided by frequeny gives number of
-        // samples per period
+    fz_float_t step_size;
+    
+    if (samples->item_size != sizeof(fz_sample_t)) {
+        return FZ_RESULT_INVALID_ARG;
+    }
+    
+    // sample rate divided by frequeny gives number of samples per period
+    step_size = 1.f/(oscillator->sample_rate/oscillator->frequency);
     
     // fill the instants part of the sample buffer
     for (i = 0; i < samples->size; ++i) {
-        samples->instants[i] = oscillator->instant;
+        FZ_LIST_REF(samples, i, fz_sample_t)->instant = oscillator->instant;
         oscillator->instant += step_size;
         if (oscillator->instant >= 1.0f) {
             oscillator->instant -= 1.0f;
