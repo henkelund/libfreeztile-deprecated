@@ -61,16 +61,6 @@ fz_result_t fz_form_apply(
                           fz_form_t   *form);
 
 /**
- *
- * @param  fz_form_t   *form
- * @param  fz_uint_t   size
- * @return fz_result_t
- */
-fz_result_t fz_form_resize(
-                           fz_form_t *form,
-                           fz_uint_t size);
-
-/**
  * 
  * @param  fz_curve_t  *curve
  * @param  fz_form_t   *form

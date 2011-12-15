@@ -74,9 +74,7 @@ typedef struct {
 
 typedef struct {
     fz_uint_t   state;
-    fz_splval_t *prototype;
-    fz_uint_t   proto_size;
-    fz_uint_t   proto_avail_size;
+    fz_list_t   *template;
     fz_uint_t   version;
 } fz_form_t;
 

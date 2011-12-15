@@ -36,14 +36,17 @@
 fz_result_t 
 fz_form_create(fz_form_t **form)
 {
+    fz_result_t result;
     fz_form_t *f = malloc(sizeof(fz_form_t));
     if (f == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
+    if ((result = fz_list_create(&f->template, sizeof(fz_splval_t))) 
+            != FZ_RESULT_SUCCESS) {
+        free(f);
+        return result;
+    }
     f->state = FZ_FORM_STATE_NONE;
-    f->prototype = NULL;
-    f->proto_size = 0;
-    f->proto_avail_size = 0;
     f->version = 0;
     *form = f;
     return FZ_RESULT_SUCCESS;
@@ -52,7 +55,14 @@ fz_form_create(fz_form_t **form)
 fz_result_t
 fz_form_destroy(fz_form_t **form)
 {
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    fz_result_t result;
+    fz_form_t   *f = *form;
+    if ((result = fz_list_destroy(&f->template)) != FZ_RESULT_SUCCESS) {
+        return result;
+    }
+    free(f);
+    *form = NULL;
+    return FZ_RESULT_SUCCESS;
 }
 
 fz_result_t
@@ -67,74 +77,23 @@ fz_form_apply(
         return FZ_RESULT_INVALID_ARG;
     }
     
-    if (form->proto_size > 0) {
+    if (form->template->size > 0) {
         for (i = 0; i < samples->size; ++i) {
             instant = (fz_uint_t)
-                    (FZ_LIST_REF(samples, i, fz_sample_t)->instant*form->proto_size);
-            FZ_LIST_REF(samples, i, fz_sample_t)->value = form->prototype[instant];
+                    (FZ_LIST_REF(samples, i, fz_sample_t)->instant * 
+                    form->template->size);
+            FZ_LIST_REF(samples, i, fz_sample_t)->value = 
+                    FZ_LIST_VAL(form->template, instant, fz_splval_t);
         }
     }
     return FZ_RESULT_SUCCESS;
 }
-
-fz_result_t
-fz_form_resize(
-               fz_form_t *form,
-               fz_uint_t size)
-{
-    // @todo Thread safety
-    fz_uint_t   i,           // new size counter
-                pi,          // prototype size counter
-                malloc_size; // 
-    
-    fz_splval_t *prototype; // new prototype
-    
-    if (size < form->proto_size) {
-        
-        for (i = 0; i < size; ++i) {
-            pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
-            form->prototype[i] = form->prototype[pi];
-        }
-        form->proto_size = size;
-        
-    } else if (size > form->proto_size) {
-        
-        if (size > form->proto_avail_size) {
-            
-            malloc_size = (fz_uint_t) pow(2, ceil(log(size)/log(2)));
-            prototype = malloc(malloc_size*sizeof(fz_splval_t));
-            memset(prototype, 0, malloc_size*sizeof(fz_splins_t));
-            if (form->prototype != NULL) {
-                for (i = 0; i < size; ++i) {
-                    pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
-                    prototype[i] = form->prototype[pi];
-                }
-                free(form->prototype);
-            }
-            form->prototype = prototype;
-            form->proto_avail_size = malloc_size;
-        } else {
-            
-            for (i = size - 1; size <= 0; --i) {
-                pi = (fz_uint_t)((((fz_float_t)i)/size)*form->proto_size);
-                form->prototype[i] = form->prototype[pi];
-            }
-        }
-        form->proto_size = size;
-    } /*else if (size == form->proto_size) {
-        // nothing to do..
-    }*/
-    return FZ_RESULT_SUCCESS;
-}
-
 
 fz_result_t 
 fz_curve_build_prototype(
                          fz_curve_t  *curve,
                          fz_form_t   *form)
 {
-    // @todo Thread safety
-    
     // declare vars
     fz_uint_t  i;           // counter
     fz_float_t pos,
@@ -161,8 +120,8 @@ fz_curve_build_prototype(
     c3y = curve->end.y-curve->start.y+(3*curve->a.y)-(3*curve->b.y);
 
     // render it
-    for (i = 0; i < form->proto_size; ++i) {
-        t = pos = ((float) i)/form->proto_size; // first approximation of t = x
+    for (i = 0; i < form->template->size; ++i) {
+        t = pos = ((float) i)/form->template->size; // first approximation of t = x
         d = 1;
         f = (t > 0.f ? 1 : 0);
         while (fabs(f/d) > curve->tolerance) {
@@ -184,7 +143,7 @@ fz_curve_build_prototype(
 
             t -= f/d;
         }
-        form->prototype[i] = c0y+t*(c1y+t*(c2y+t*c3y));
+        FZ_LIST_VAL(form->template, i, fz_splval_t) = c0y+t*(c1y+t*(c2y+t*c3y));
     }
     
     form->version = curve->version;
