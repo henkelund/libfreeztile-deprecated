@@ -54,6 +54,15 @@
 
 /**
  * 
+ * @param list
+ * @param item_size
+ * @return 
+ */
+#define FZ_LIST_TYPE(list, type) \
+            (list->item_size == sizeof(type))
+
+/**
+ * 
  * @param  fz_list_t   **list
  * @param  fz_uint_t   item_size
  * @return fz_result_t

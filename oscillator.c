@@ -65,7 +65,7 @@ fz_oscillator_apply(
     fz_uint_t i;
     fz_float_t step_size;
     
-    if (samples->item_size != sizeof(fz_sample_t)) {
+    if (!FZ_LIST_TYPE(samples, fz_sample_t)) {
         return FZ_RESULT_INVALID_ARG;
     }
     

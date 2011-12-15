@@ -37,37 +37,37 @@ fz_list_create(
                fz_list_t **list,
                fz_uint_t item_size)
 {
-    fz_list_t *l = malloc(sizeof(fz_list_t));
-    if (l == NULL) {
+    fz_list_t *ls = malloc(sizeof(fz_list_t));
+    if (ls == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    l->items = NULL;
-    l->item_size = item_size;
-    l->size = 0;
-    l->avail_size = 0;
-    l->remove = NULL;
-    l->compare = NULL;
-    *list = l;
+    ls->items = NULL;
+    ls->item_size = item_size;
+    ls->size = 0;
+    ls->avail_size = 0;
+    ls->remove = NULL;
+    ls->compare = NULL;
+    *list = ls;
     return FZ_RESULT_SUCCESS;
 }
 
 fz_result_t
 fz_list_destroy(fz_list_t **list)
 {
-    fz_list_t *l = *list;
+    fz_list_t *ls = *list;
     fz_uint_t i;
     // free items if function provided
-    if (l->remove != NULL) {
-        for (i = 0; i < l->size; ++i) {
-            l->remove(l->items + (i*l->item_size));
+    if (ls->remove != NULL) {
+        for (i = 0; i < ls->size; ++i) {
+            ls->remove(ls->items + (i*ls->item_size));
         }
     }
     // free item storage
-    if (l->items != NULL) {
-        free(l->items);
+    if (ls->items != NULL) {
+        free(ls->items);
     }
     // free list storage
-    free(l);
+    free(ls);
     *list = NULL;
     return FZ_RESULT_SUCCESS;
 }

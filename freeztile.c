@@ -91,6 +91,8 @@ fz_result_string(fz_result_t result)
         return "lock error";
     } else if (result == FZ_RESULT_IOOB_ERROR) {
         return "index out-of-bounds error";
+    } else if (result == FZ_RESULT_INVALID_ARG) {
+        return "invalid argument";
     }
     return "unknown result";
 }
