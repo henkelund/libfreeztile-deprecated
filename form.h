@@ -31,6 +31,15 @@
 
 #include "types.h"
 
+#define DEFAULT_CURVE { \
+        .start     = 0.f, \
+        .end       = 0.f, \
+        .a         = {.x = 0.25f, .y = 3.f}, \
+        .b         = {.x = 0.75f, .y = -3.f}, \
+        .tolerance = 0.0001f, \
+        .version   = 1 \
+    }
+
 static const unsigned int FZ_FORM_STATE_NONE       = 0;
 static const unsigned int FZ_FORM_STATE_APPLYING   = (1 << 0);
 
@@ -66,37 +75,26 @@ fz_result_t fz_form_apply(
  * @param  fz_form_t   *form
  * @return fz_result_t 
  */
-fz_result_t fz_curve_build_prototype(
-                                     fz_curve_t  *curve,
-                                     fz_form_t   *form);
+fz_result_t fz_curve_render(
+                            fz_curve_t  *curve,
+                            fz_form_t   *form);
 
 /**
  * 
- * @param  fz_multicurve_t **multicurve
- * @return fz_result_t
- */
-fz_result_t fz_multicurve_create(fz_multicurve_t **multicurve);
-
-/**
- * 
- * @param fz_multicurve_t *multicurve
- * @param fz_curve_t      *curve
- * @param fz_int_t        *curve
+ * @param fz_list_t *multicurve
  * @return 
  */
-fz_result_t fz_multicurve_add(
-                              fz_multicurve_t *multicurve,
-                              fz_curve_t      *curve,
-                              fz_int_t        pos);
+fz_result_t fz_multicurve_normalize_shares(
+                                           fz_list_t  *multicurve);
 
 /**
  * 
- * @param  fz_multicurve_t  *curve
- * @param  fz_form_t        *form
+ * @param  fz_list_t   *curve
+ * @param  fz_form_t   *form
  * @return fz_result_t 
  */
-fz_result_t fz_multicurve_build_prototype(
-                                          fz_multicurve_t  *multicurve,
-                                          fz_form_t        *form);
+fz_result_t fz_multicurve_render(
+                                 fz_list_t  *multicurve,
+                                 fz_form_t  *form);
 
 #endif // _FZ_FORM_H_

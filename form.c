@@ -81,7 +81,7 @@ fz_form_apply(
         for (i = 0; i < samples->size; ++i) {
             instant = (fz_uint_t)
                     (FZ_LIST_REF(samples, i, fz_sample_t)->instant * 
-                    form->template->size);
+                        form->template->size);
             FZ_LIST_REF(samples, i, fz_sample_t)->value = 
                     FZ_LIST_VAL(form->template, instant, fz_splval_t);
         }
@@ -90,9 +90,9 @@ fz_form_apply(
 }
 
 fz_result_t 
-fz_curve_build_prototype(
-                         fz_curve_t  *curve,
-                         fz_form_t   *form)
+fz_curve_render(
+                fz_curve_t  *curve,
+                fz_form_t   *form)
 {
     // declare vars
     fz_uint_t  i;           // counter
@@ -114,10 +114,10 @@ fz_curve_build_prototype(
     }
     
     // assign vars
-    c0y = curve->start.y,
-    c1y = (3*curve->a.y)-(3*curve->start.y),
-    c2y = (3*curve->start.y)-(2*(3*curve->a.y))+(3*curve->b.y),
-    c3y = curve->end.y-curve->start.y+(3*curve->a.y)-(3*curve->b.y);
+    c0y = curve->start,
+    c1y = (3*curve->a.y)-(3*curve->start),
+    c2y = (3*curve->start)-(2*(3*curve->a.y))+(3*curve->b.y),
+    c3y = curve->end-curve->start+(3*curve->a.y)-(3*curve->b.y);
 
     // render it
     for (i = 0; i < form->template->size; ++i) {
@@ -129,17 +129,13 @@ fz_curve_build_prototype(
             t2 = t*t;
             ti2 = ti*ti;
             
-            f = (ti2*ti*curve->start.x) +
-                (3*ti2*t*curve->a.x) +
+            f = (3*ti2*t*curve->a.x) +
                 (3*ti*t2*curve->b.x) +
-                (t2*t*curve->end.x) -
-                pos;
+                (t2*t) - pos;
             
-            d = -
-                (3*ti2*curve->start.x) +
-                (3*curve->a.x*(1 - 4*t + 3*t2)) +
+            d = (3*curve->a.x*(1 - 4*t + 3*t2)) +
                 (3*curve->b.x*(2*t - 3*t2)) +
-                (3*t2*curve->end.x);
+                (3*t2);
 
             t -= f/d;
         }
@@ -150,37 +146,69 @@ fz_curve_build_prototype(
     return FZ_RESULT_SUCCESS;
 }
 
-fz_result_t 
-fz_multicurve_create(fz_multicurve_t **multicurve)
+fz_result_t
+fz_multicurve_normalize_shares(
+                               fz_list_t  *multicurve)
 {
-    fz_multicurve_t *mc = malloc(sizeof(fz_multicurve_t));
-    if (mc == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
+    fz_float_t total_share;
+    fz_uint_t  i;
+    
+    if (multicurve == NULL || !FZ_LIST_TYPE(multicurve, fz_mccurve_t)) {
+        return FZ_RESULT_INVALID_ARG;
     }
-    fz_list_create(&mc->forms, sizeof(fz_pointer_t));
-    fz_list_create(&mc->curves, sizeof(fz_pointer_t));
-    fz_list_create(&mc->proprtions, sizeof(fz_float_t));
-    *multicurve = mc;
+
+    total_share = 0.f;
+    for (i = 0; i < multicurve->size; ++i) {
+        total_share += FZ_LIST_REF(multicurve, i, fz_mccurve_t)->share;
+    }
+    for (i = 0; i < multicurve->size; ++i) {
+        FZ_LIST_REF(multicurve, i, fz_mccurve_t)->share /= total_share;
+    }
+    
     return FZ_RESULT_SUCCESS;
 }
 
-fz_result_t
-fz_multicurve_add(
-                  fz_multicurve_t *multicurve,
-                  fz_curve_t      *curve,
-                  fz_int_t        pos)
-{
-    if (pos < 0 || pos > multicurve->curves->size) {
-        pos = multicurve->curves->size;
-    }
-    
-    return FZ_RESULT_NOT_IMPLEMENTED;
-}
+#include <stdio.h>
 
 fz_result_t
-fz_multicurve_build_prototype(
-                              fz_multicurve_t  *multicurve,
-                              fz_form_t        *form)
+fz_multicurve_render(
+                     fz_list_t  *multicurve,
+                     fz_form_t  *form)
 {
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    fz_result_t  result;
+    fz_uint_t    i, j, k, offset, size;
+    fz_mccurve_t *mccurve;
+    if ((result = fz_multicurve_normalize_shares(multicurve)) != FZ_RESULT_SUCCESS) {
+        return result;
+    }
+    offset = 0;
+    for (i = 0; i < multicurve->size; ++i) {
+        mccurve = FZ_LIST_REF(multicurve, i, fz_mccurve_t);
+        // create curve cache form if NULL
+        if (mccurve->form == NULL && (result = fz_form_create(&mccurve->form)) 
+                != FZ_RESULT_SUCCESS) {
+            return result;
+        }
+        // make room for form @todo don't hard code size
+        if ((result = fz_list_clear(
+                mccurve->form->template,
+                form->template->size)) != FZ_RESULT_SUCCESS) {
+            return result;
+        }
+        // render
+        if ((result = fz_curve_render(&mccurve->curve, mccurve->form))
+                != FZ_RESULT_SUCCESS) {
+            return result;
+        }
+        
+        size = form->template->size*mccurve->share;
+        for (j = 0; j < size; ++j) {
+            // maybe find average instead?
+            k = (fz_uint_t)((((fz_float_t)j)/size)*mccurve->form->template->size);
+            FZ_LIST_VAL(form->template, offset + j, fz_splval_t) = 
+                    FZ_LIST_VAL(mccurve->form->template, k, fz_splval_t);
+        }
+        offset += mccurve->share*form->template->size;
+    }
+    return FZ_RESULT_SUCCESS;
 }

@@ -87,18 +87,19 @@ typedef struct {
 } fz_oscillator_t;
 
 typedef struct {
-    fz_pointf_t start;
-    fz_pointf_t end;
+    fz_splval_t start;
+    fz_splval_t end;
     fz_pointf_t a;
     fz_pointf_t b;
     fz_float_t  tolerance;
     fz_uint_t   version;
 } fz_curve_t;
 
+// multicurve curve
 typedef struct {
-    fz_list_t   *forms;
-    fz_list_t   *curves;
-    fz_list_t   *proprtions;
-} fz_multicurve_t;
+    fz_form_t   *form;
+    fz_curve_t  curve;
+    fz_float_t  share;
+} fz_mccurve_t;
 
 #endif // _FZ_TYPES_H_
