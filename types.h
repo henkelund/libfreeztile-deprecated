@@ -29,25 +29,31 @@
 #ifndef _FZ_TYPES_H_
 #define _FZ_TYPES_H_
 
+#ifndef FZ_HASH_SIZE
+#define FZ_HASH_SIZE 32
+#endif
+
 #include <pthread.h>
 
-typedef float           fz_float_t;
+typedef float             fz_float_t;
 
-typedef int             fz_int_t;
+typedef int               fz_int_t;
 
-typedef unsigned int    fz_uint_t;
+typedef unsigned int      fz_uint_t;
 
-typedef int             fz_result_t;
+typedef unsigned long int fz_ulong_t;
 
-typedef void*           fz_pointer_t;
+typedef int               fz_result_t;
+
+typedef void*             fz_pointer_t;
 
 // sample value (amplitude)
-typedef fz_float_t      fz_splval_t;
+typedef fz_float_t        fz_splval_t;
 
 // sample instant
-typedef fz_float_t      fz_splins_t;
+typedef fz_float_t        fz_splins_t;
 
-typedef pthread_mutex_t fz_lock_t;
+typedef pthread_mutex_t   fz_lock_t;
 
 // fz_list_t function types
 typedef void            (*fz_lirm_f)(void *item);
@@ -75,7 +81,7 @@ typedef struct {
 typedef struct {
     fz_uint_t   state;
     fz_list_t   *template;
-    fz_uint_t   version;
+    char        version[FZ_HASH_SIZE];
 } fz_form_t;
 
 typedef struct {
@@ -91,8 +97,6 @@ typedef struct {
     fz_splval_t end;
     fz_pointf_t a;
     fz_pointf_t b;
-    fz_float_t  tolerance;
-    fz_uint_t   version;
 } fz_curve_t;
 
 // multicurve curve

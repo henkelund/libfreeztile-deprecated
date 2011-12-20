@@ -71,6 +71,17 @@ fz_result_t fz_lock_acquire(fz_lock_t *lock);
 fz_result_t fz_lock_release(fz_lock_t *lock);
 
 /**
+ * This function is implemented using the RFC 1321 MD5 Message-Digest Algorithm
+ * 
+ * @see http://www.ietf.org/rfc/rfc1321.txt
+ * @param char      *buffer
+ * @param void      *data
+ * @param fz_uint_t size
+ * @return 
+ */
+fz_result_t fz_hash(char *buffer/*[FZ_HASH_SIZE]*/, void *data, fz_uint_t size);
+
+/**
  * 
  * @param  fz_result_t result
  * @return const char*

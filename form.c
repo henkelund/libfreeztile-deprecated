@@ -47,7 +47,7 @@ fz_form_create(fz_form_t **form)
         return result;
     }
     f->state = FZ_FORM_STATE_NONE;
-    f->version = 0;
+    memset(f->version, 0, FZ_HASH_SIZE);
     *form = f;
     return FZ_RESULT_SUCCESS;
 }
@@ -107,9 +107,13 @@ fz_curve_render(
                c1y,
                c2y,
                c3y;
+    char       hash[FZ_HASH_SIZE];
     
     // don't bother to render if curve hasn't changed (force option?)
-    if (curve->version == form->version) {
+    // @todo Performance test of hash function.
+    // If it's slower than the actual curve rendering this is just stupid 
+    fz_hash(hash, curve, sizeof(fz_curve_t));
+    if (strncmp(hash, form->version, FZ_HASH_SIZE) == 0) {
         return FZ_RESULT_SUCCESS;
     }
     
@@ -124,7 +128,7 @@ fz_curve_render(
         t = pos = ((float) i)/form->template->size; // first approximation of t = x
         d = 1;
         f = (t > 0.f ? 1 : 0);
-        while (fabs(f/d) > curve->tolerance) {
+        while (fabs(f/d) > FZ_NR_TOL) {
             ti = 1 - t;
             t2 = t*t;
             ti2 = ti*ti;
@@ -142,7 +146,8 @@ fz_curve_render(
         FZ_LIST_VAL(form->template, i, fz_splval_t) = c0y+t*(c1y+t*(c2y+t*c3y));
     }
     
-    form->version = curve->version;
+    // update form version with curve hash
+    memcpy(form->version, hash, FZ_HASH_SIZE);
     return FZ_RESULT_SUCCESS;
 }
 
@@ -168,8 +173,6 @@ fz_multicurve_normalize_shares(
     return FZ_RESULT_SUCCESS;
 }
 
-#include <stdio.h>
-
 fz_result_t
 fz_multicurve_render(
                      fz_list_t  *multicurve,
@@ -189,7 +192,7 @@ fz_multicurve_render(
                 != FZ_RESULT_SUCCESS) {
             return result;
         }
-        // make room for form @todo don't hard code size
+        // make room for form
         if ((result = fz_list_clear(
                 mccurve->form->template,
                 form->template->size)) != FZ_RESULT_SUCCESS) {

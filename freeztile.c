@@ -30,7 +30,10 @@
 #include <math.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 #include "freeztile.h"
+#include "lib/md5/global.h"
+#include "lib/md5/md5.h"
 
 fz_result_t 
 fz_lock_create(fz_lock_t **lock)
@@ -75,6 +78,27 @@ fz_lock_release(fz_lock_t *lock)
     if ((result = pthread_mutex_unlock(lock)) != 0) {
         return FZ_RESULT_LOCK_ERROR;
     }
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_hash(
+        char *buffer,
+        void *data,
+        fz_uint_t size)
+{
+    fz_uint_t i;
+    unsigned char digest[16];
+    MD5_CTX context;
+    MD5Init(&context);
+    MD5Update(&context, (unsigned char*)data, size);
+    MD5Final(digest, &context);
+
+    memset(buffer, 0, FZ_HASH_SIZE);
+    for (i = 0; i < 16 && i < FZ_HASH_SIZE/2; ++i) {
+        sprintf(buffer + (i*2), "%02x", digest[i]);
+    }
+    
     return FZ_RESULT_SUCCESS;
 }
 

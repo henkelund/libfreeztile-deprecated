@@ -31,13 +31,15 @@
 
 #include "types.h"
 
+#ifndef FZ_NR_TOL
+#define FZ_NR_TOL 0.0001f
+#endif
+
 #define DEFAULT_CURVE { \
         .start     = 0.f, \
         .end       = 0.f, \
         .a         = {.x = 0.25f, .y = 3.f}, \
         .b         = {.x = 0.75f, .y = -3.f}, \
-        .tolerance = 0.0001f, \
-        .version   = 1 \
     }
 
 static const unsigned int FZ_FORM_STATE_NONE       = 0;
