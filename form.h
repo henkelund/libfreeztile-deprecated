@@ -63,13 +63,15 @@ fz_result_t fz_form_destroy(fz_form_t **form);
 
 /**
  *
- * @param  fz_list_t *samples
  * @param  fz_form_t *form
+ * @param  fz_list_t *frames
+ * @param  fz_list_t *amplitudes
  * @return fz_result
  */
 fz_result_t fz_form_apply(
-                          fz_list_t   *samples,
-                          fz_form_t   *form);
+                          fz_form_t   *form,
+                          fz_list_t   *frames,
+                          fz_list_t   *amplitudes);
 
 /**
  * 

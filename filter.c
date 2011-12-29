@@ -140,24 +140,23 @@ fz_filter_lowpass_function(
     // @todo use envelope to recalc a in loop
 
     // calc first amplitude from stored history
-    FZ_LIST_REF(samples, 0, fz_sample_t)->amp =
-        lowpass->last +
-            (a*(FZ_LIST_REF(samples, 0, fz_sample_t)->amp - lowpass->last));
+    FZ_LIST_VAL(samples, 0, fz_amp_t) =
+        lowpass->last + (a*(FZ_LIST_VAL(samples, 0, fz_amp_t) - lowpass->last));
 
     for (i = 1; i < samples->size; ++i) {
         a = dt/(lowpass->rc*FZ_LIST_VAL(envelope, i, fz_real_t) + dt);
-        FZ_LIST_REF(samples, i, fz_sample_t)->amp =
-            FZ_LIST_REF(samples, i - 1, fz_sample_t)->amp +
+        FZ_LIST_VAL(samples, i, fz_amp_t) =
+            FZ_LIST_VAL(samples, i - 1, fz_amp_t) +
                 (
                     a*
                         (
-                            FZ_LIST_REF(samples, i, fz_sample_t)->amp -
-                            FZ_LIST_REF(samples, i - 1, fz_sample_t)->amp
+                            FZ_LIST_VAL(samples, i, fz_amp_t) -
+                            FZ_LIST_VAL(samples, i - 1, fz_amp_t)
                          )
                 );
         // i.e. samples[i] = samples[i-1] + α * (samples[i] - samples[i-1]);
     }
-    lowpass->last = FZ_LIST_REF(samples, samples->size - 1, fz_sample_t)->amp;
+    lowpass->last = FZ_LIST_VAL(samples, samples->size - 1, fz_amp_t);
     return samples->size;
 }
 

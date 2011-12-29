@@ -78,11 +78,6 @@ typedef struct {
 } fz_list_t;
 
 typedef struct {
-    fz_frame_t frame;
-    fz_amp_t   amp;
-} fz_sample_t;
-
-typedef struct {
     fz_uint_t  state;
     fz_list_t *template;
     char       version[FZ_HASH_SIZE];
@@ -95,6 +90,7 @@ typedef struct {
     fz_float_t  frequency;
     fz_real_t   phase;
     fz_float_t  sample_rate;
+    fz_list_t  *frame_buffer;
 } fz_oscillator_t;
 
 typedef struct {

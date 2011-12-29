@@ -40,7 +40,14 @@ fz_oscillator_create(fz_oscillator_t **oscillator)
     if (osc == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    if ((result = fz_form_create(&osc->form)) != 0) {
+    if ((result = fz_form_create(&osc->form)) != FZ_RESULT_SUCCESS) {
+        free(osc);
+        return result;
+    }
+    if ((result = fz_list_create(&osc->frame_buffer, sizeof(fz_frame_t)))
+            != FZ_RESULT_SUCCESS) {
+        free(osc);
+        fz_form_destroy(&osc->form);
         return result;
     }
     osc->frame       = 0.0f;
@@ -61,15 +68,21 @@ fz_oscillator_destroy(fz_oscillator_t **oscillator)
 
 fz_result_t     
 fz_oscillator_apply(
-                    fz_list_t       *samples,
-                    fz_oscillator_t *oscillator)
+                    fz_oscillator_t *oscillator,
+                    fz_list_t       *samples)
 {
+    fz_result_t result = FZ_RESULT_SUCCESS;
     fz_uint_t  i;
     fz_float_t step_size;
     fz_real_t  frame;
     
-    if (!FZ_LIST_TYPE(samples, fz_sample_t)) {
+    if (!FZ_LIST_TYPE(samples, fz_amp_t)) {
         return FZ_RESULT_INVALID_ARG;
+    }
+
+    result = fz_list_clear(oscillator->frame_buffer, samples->size);
+    if (result != FZ_RESULT_SUCCESS) {
+        return result;
     }
     
     // sample rate divided by frequeny gives number of samples per period
@@ -81,13 +94,12 @@ fz_oscillator_apply(
         while (frame >= 1) {
             frame -= 1;
         }
-        FZ_LIST_REF(samples, i, fz_sample_t)->frame = frame;
+        FZ_LIST_VAL(oscillator->frame_buffer, i, fz_frame_t) = frame;
         oscillator->frame += step_size;
         while (oscillator->frame >= 1) {
             oscillator->frame -= 1;
         }
     }
 
-    fz_form_apply(samples, oscillator->form);
-    return FZ_RESULT_SUCCESS;
+    return fz_form_apply(oscillator->form, oscillator->frame_buffer, samples);
 }

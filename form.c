@@ -67,22 +67,22 @@ fz_form_destroy(fz_form_t **form)
 
 fz_result_t
 fz_form_apply(
-              fz_list_t   *samples,
-              fz_form_t   *form)
+              fz_form_t   *form,
+              fz_list_t   *frames,
+              fz_list_t   *amplitudes)
 {
     fz_uint_t i;
     fz_uint_t frame;
     
-    if (!FZ_LIST_TYPE(samples, fz_sample_t)) {
+    if (!FZ_LIST_TYPE(frames, fz_frame_t) || !FZ_LIST_TYPE(amplitudes, fz_amp_t)) {
         return FZ_RESULT_INVALID_ARG;
     }
     
     if (form->template->size > 0) {
-        for (i = 0; i < samples->size; ++i) {
+        for (i = 0; i < frames->size && i < amplitudes->size; ++i) {
             frame = (fz_uint_t)
-                    (FZ_LIST_REF(samples, i, fz_sample_t)->frame *
-                        form->template->size);
-            FZ_LIST_REF(samples, i, fz_sample_t)->amp =
+                    (FZ_LIST_VAL(frames, i, fz_frame_t) * form->template->size);
+            FZ_LIST_VAL(amplitudes, i, fz_amp_t) =
                     FZ_LIST_VAL(form->template, frame, fz_amp_t);
         }
     }
