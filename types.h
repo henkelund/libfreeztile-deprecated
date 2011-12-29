@@ -47,6 +47,8 @@ typedef unsigned int      fz_uint_t;
 
 typedef unsigned long int fz_ulong_t;
 
+typedef char              fz_char_t;
+
 typedef int               fz_result_t;
 
 typedef void*             fz_pointer_t;
@@ -70,7 +72,8 @@ typedef struct {
 
 typedef struct {
     fz_pointer_t items;
-    fz_uint_t    item_size;
+    fz_uint_t    type_size;
+    fz_char_t   *type_name;
     fz_uint_t    size;
     fz_uint_t    avail_size;
     fz_lirm_f    remove;
@@ -80,7 +83,7 @@ typedef struct {
 typedef struct {
     fz_uint_t  state;
     fz_list_t *template;
-    char       version[FZ_HASH_SIZE];
+    fz_char_t  version[FZ_HASH_SIZE];
 } fz_form_t;
 
 typedef struct {

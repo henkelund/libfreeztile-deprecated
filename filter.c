@@ -54,7 +54,7 @@ fz_filter_create(fz_filter_t **filter)
     f->envelope.sizes[FZ_ENV_SUSTAIN] = 0;
     f->envelope.sizes[FZ_ENV_RELEASE] = 0;
     f->envelope.state = FZ_ENV_ATTACK;
-    fz_list_create(&f->env_buffer, sizeof(fz_real_t));
+    FZ_LIST_NEW(f->env_buffer, fz_real_t);
     f->envelope.blend  = 0;
     f->data     = NULL;
     *filter     = f;

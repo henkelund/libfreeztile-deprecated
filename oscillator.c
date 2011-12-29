@@ -44,7 +44,7 @@ fz_oscillator_create(fz_oscillator_t **oscillator)
         free(osc);
         return result;
     }
-    if ((result = fz_list_create(&osc->frame_buffer, sizeof(fz_frame_t)))
+    if ((result = FZ_LIST_NEW(osc->frame_buffer, fz_frame_t))
             != FZ_RESULT_SUCCESS) {
         free(osc);
         fz_form_destroy(&osc->form);

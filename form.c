@@ -41,7 +41,7 @@ fz_form_create(fz_form_t **form)
     if (f == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    if ((result = fz_list_create(&f->template, sizeof(fz_amp_t)))
+    if ((result = FZ_LIST_NEW(f->template, fz_amp_t))
             != FZ_RESULT_SUCCESS) {
         free(f);
         return result;

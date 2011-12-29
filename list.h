@@ -29,7 +29,18 @@
 #ifndef _FZ_LIST_H_
 #define _FZ_LIST_H_
 
+#include <string.h>
 #include "types.h"
+
+/**
+ * Convenience macro for list creation
+ * 
+ * @param  fz_list_t* list
+ * @param  type       type of list
+ * @return 
+ */
+#define FZ_LIST_NEW(list, type) \
+            fz_list_create(&list, sizeof(type), #type)
 
 /**
  * Convenience macro for list item retrieval
@@ -41,6 +52,7 @@
  */
 #define FZ_LIST_VAL(list, i, type) \
             (*(((type*)list->items) + i))
+
 /**
  * Convenience macro for list item pointer retrieval
  *
@@ -53,13 +65,14 @@
             (((type*)list->items) + i)
 
 /**
+ * Convenience macro for list type checking
  * 
- * @param list
- * @param item_size
- * @return 
+ * @param  fz_list_t* list
+ * @param  type       type
+ * @return bool       True if type matches
  */
 #define FZ_LIST_TYPE(list, type) \
-            (list->item_size == sizeof(type))
+            (list->type_size == sizeof(type) && strcmp(list->type_name, #type) == 0)
 
 /**
  * 
@@ -69,7 +82,8 @@
  */
 fz_result_t fz_list_create(
                            fz_list_t **list,
-                           fz_uint_t item_size);
+                           fz_uint_t   type_size,
+                           fz_char_t  *type_name);
 
 /**
  * 

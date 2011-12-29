@@ -35,19 +35,26 @@
 fz_result_t
 fz_list_create(
                fz_list_t **list,
-               fz_uint_t item_size)
+               fz_uint_t   type_size,
+               fz_char_t  *type_name)
 {
-    fz_list_t *ls = malloc(sizeof(fz_list_t));
+    fz_list_t *ls = (fz_list_t*)malloc(sizeof(fz_list_t));
     if (ls == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    ls->items = NULL;
-    ls->item_size = item_size;
-    ls->size = 0;
+    ls->type_name = (fz_char_t*)malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
+    if (ls->type_name == NULL) {
+        free(ls);
+        return FZ_RESULT_MALLOC_ERROR;
+    }
+    strcpy(ls->type_name, type_name);
+    ls->items      = NULL;
+    ls->type_size  = type_size;
+    ls->size       = 0;
     ls->avail_size = 0;
-    ls->remove = NULL;
-    ls->compare = NULL;
-    *list = ls;
+    ls->remove     = NULL;
+    ls->compare    = NULL;
+    *list          = ls;
     return FZ_RESULT_SUCCESS;
 }
 
@@ -59,13 +66,14 @@ fz_list_destroy(fz_list_t **list)
     // free items if function provided
     if (ls->remove != NULL) {
         for (i = 0; i < ls->size; ++i) {
-            ls->remove(ls->items + (i*ls->item_size));
+            ls->remove(ls->items + (i*ls->type_size));
         }
     }
     // free item storage
     if (ls->items != NULL) {
         free(ls->items);
     }
+    free(ls->type_name);
     // free list storage
     free(ls);
     *list = NULL;
@@ -84,11 +92,11 @@ fz_list_clear(
     }
     if (list->remove != NULL) {
         for (i = 0; i < list->size; ++i) {
-            list->remove(list->items + (i*list->item_size));
+            list->remove(list->items + (i*list->type_size));
         }
     }
     list->size = size;
-    memset(list->items, 0, list->item_size*list->size);
+    memset(list->items, 0, list->type_size*list->size);
     return FZ_RESULT_SUCCESS;
 }
 
@@ -102,12 +110,12 @@ fz_list_grow(
     if (min_size > list->avail_size) {
         malloc_size = min_size < 10 ? 10 : 
             (fz_uint_t) pow(2, ceil(log(min_size)/log(2)));
-        items = malloc(malloc_size*list->item_size);
+        items = malloc(malloc_size*list->type_size);
         if (items == NULL) {
             return FZ_RESULT_MALLOC_ERROR;
         }
         if (list->items != NULL) {
-            memcpy(items, list->items, list->size*list->item_size);
+            memcpy(items, list->items, list->size*list->type_size);
             free(list->items);
         }
         list->items = items;
@@ -135,13 +143,13 @@ fz_list_insert(
 
     if (pos != list->size) {
         memmove(
-            list->items + ((pos + 1)*list->item_size),
-            list->items + (pos*list->item_size),
-            (list->size - pos)*list->item_size
+            list->items + ((pos + 1)*list->type_size),
+            list->items + (pos*list->type_size),
+            (list->size - pos)*list->type_size
         );
     }
 
-    memcpy(list->items + (pos*list->item_size), item, list->item_size);
+    memcpy(list->items + (pos*list->type_size), item, list->type_size);
     list->size = size;
     
     return FZ_RESULT_SUCCESS;
@@ -164,14 +172,14 @@ fz_list_remove(
         return FZ_RESULT_IOOB_ERROR;
     }
     if (list->remove != NULL) {
-        list->remove(list->items + (pos*list->item_size));
+        list->remove(list->items + (pos*list->type_size));
     }
     --list->size;
     if (pos != list->size) {
         memmove(
-            list->items + (pos*list->item_size),
-            list->items + ((pos + 1)*list->item_size),
-            (list->size - pos)*list->item_size
+            list->items + (pos*list->type_size),
+            list->items + ((pos + 1)*list->type_size),
+            (list->size - pos)*list->type_size
         );
     }
     return FZ_RESULT_SUCCESS;
