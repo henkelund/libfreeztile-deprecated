@@ -41,7 +41,7 @@ fz_form_create(fz_form_t **form)
     if (f == NULL) {
         return FZ_RESULT_MALLOC_ERROR;
     }
-    if ((result = fz_list_create(&f->template, sizeof(fz_splval_t))) 
+    if ((result = fz_list_create(&f->template, sizeof(fz_amp_t)))
             != FZ_RESULT_SUCCESS) {
         free(f);
         return result;
@@ -71,7 +71,7 @@ fz_form_apply(
               fz_form_t   *form)
 {
     fz_uint_t i;
-    fz_uint_t instant;
+    fz_uint_t frame;
     
     if (!FZ_LIST_TYPE(samples, fz_sample_t)) {
         return FZ_RESULT_INVALID_ARG;
@@ -79,11 +79,11 @@ fz_form_apply(
     
     if (form->template->size > 0) {
         for (i = 0; i < samples->size; ++i) {
-            instant = (fz_uint_t)
-                    (FZ_LIST_REF(samples, i, fz_sample_t)->instant * 
+            frame = (fz_uint_t)
+                    (FZ_LIST_REF(samples, i, fz_sample_t)->frame *
                         form->template->size);
-            FZ_LIST_REF(samples, i, fz_sample_t)->value = 
-                    FZ_LIST_VAL(form->template, instant, fz_splval_t);
+            FZ_LIST_REF(samples, i, fz_sample_t)->amp =
+                    FZ_LIST_VAL(form->template, frame, fz_amp_t);
         }
     }
     return FZ_RESULT_SUCCESS;
@@ -143,7 +143,7 @@ fz_curve_render(
 
             t -= f/d;
         }
-        FZ_LIST_VAL(form->template, i, fz_splval_t) = c0y+t*(c1y+t*(c2y+t*c3y));
+        FZ_LIST_VAL(form->template, i, fz_amp_t) = c0y+t*(c1y+t*(c2y+t*c3y));
     }
     
     // update form version with curve hash
@@ -208,8 +208,8 @@ fz_multicurve_render(
         for (j = 0; j < size; ++j) {
             // maybe find average instead?
             k = (fz_uint_t)((((fz_float_t)j)/size)*mccurve->form->template->size);
-            FZ_LIST_VAL(form->template, offset + j, fz_splval_t) = 
-                    FZ_LIST_VAL(mccurve->form->template, k, fz_splval_t);
+            FZ_LIST_VAL(form->template, offset + j, fz_amp_t) =
+                    FZ_LIST_VAL(mccurve->form->template, k, fz_amp_t);
         }
         offset += mccurve->share*form->template->size;
     }

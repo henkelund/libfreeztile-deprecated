@@ -53,11 +53,9 @@ typedef void*             fz_pointer_t;
 
 typedef fz_ulong_t        fz_flags_t;
 
-// sample value (amplitude)
-typedef fz_float_t        fz_splval_t;
+typedef fz_real_t         fz_amp_t;
 
-// sample instant
-typedef fz_float_t        fz_splins_t;
+typedef fz_real_t         fz_frame_t;
 
 typedef pthread_mutex_t   fz_lock_t;
 
@@ -80,8 +78,8 @@ typedef struct {
 } fz_list_t;
 
 typedef struct {
-    fz_splins_t instant;
-    fz_splval_t value;
+    fz_frame_t frame;
+    fz_amp_t   amp;
 } fz_sample_t;
 
 typedef struct {
@@ -91,17 +89,17 @@ typedef struct {
 } fz_form_t;
 
 typedef struct {
-    fz_form_t   *form;
-    fz_splins_t  instant;
-    fz_splval_t  amplitude;
-    fz_float_t   frequency;
-    fz_real_t    phase;
-    fz_float_t   sample_rate;
+    fz_form_t  *form;
+    fz_frame_t  frame;
+    fz_amp_t    amplitude;
+    fz_float_t  frequency;
+    fz_real_t   phase;
+    fz_float_t  sample_rate;
 } fz_oscillator_t;
 
 typedef struct {
-    fz_splval_t start;
-    fz_splval_t end;
+    fz_amp_t    start;
+    fz_amp_t    end;
     fz_pointf_t a;
     fz_pointf_t b;
 } fz_curve_t;
@@ -127,6 +125,7 @@ typedef fz_uint_t         (*fz_filter_f)(
                                          fz_filter_t *filter,
                                          fz_list_t   *samples,
                                          fz_list_t   *envelope);
+
 struct fz_flt_tag {
     fz_filter_f    function;
     fz_flags_t     options;
@@ -136,8 +135,8 @@ struct fz_flt_tag {
 };
 
 typedef struct {
-    fz_float_t  rc;
-    fz_splval_t last;
+    fz_float_t rc;
+    fz_amp_t   last;
 } fz_filter_lowpass_t;
 
 /*typedef struct {
