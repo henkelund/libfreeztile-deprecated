@@ -33,26 +33,27 @@
 
 /**
  *
- * @param  fz_oscillator_t**
+ * @param  fz_osc_t**
  * @return fz_result_t
  */
-fz_result_t fz_oscillator_create(fz_oscillator_t **oscillator);
+fz_result_t fz_oscillator_create(fz_osc_t **oscillator);
 
 /**
  *
- * @param  fz_oscillator_t**
+ * @param  fz_osc_t**
  * @return fz_result_t
  */
-fz_result_t fz_oscillator_destroy(fz_oscillator_t **oscillator);
+fz_result_t fz_oscillator_destroy(fz_osc_t **oscillator);
 
 /**
  *
- * @param  fz_list_t        *samples
- * @param  fz_oscillator_t  *oscillator
+ * @param  fz_list_t   *samples
+ * @param  fz_osc_t    *oscillator
  * @return fz_result_r
  */
 fz_result_t fz_oscillator_apply(
-                                fz_oscillator_t *oscillator,
-                                fz_list_t       *samples);
+                                fz_osc_t    *oscillator,
+                                fz_ostate_t *state,
+                                fz_list_t   *samples);
 
 #endif // _FZ_OSCILLATOR_H_

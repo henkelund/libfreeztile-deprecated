@@ -28,37 +28,22 @@
 
 #include <stdlib.h>
 #include <math.h>
-/*#include <gsl/gsl_errno.h>
-#include <gsl/gsl_fft_real_float.h>
-#include <gsl/gsl_fft_halfcomplex_float.h>*/
 #include "filter.h"
 #include "freeztile.h"
 #include "list.h"
 #include "form.h"
 
-fz_result_t
-fz_filter_create(fz_filter_t **filter)
+fz_ptr_t
+fz_filter_construct(
+                    const fz_ptr_t  self,
+                    va_list        *args)
 {
-    fz_filter_t *f = malloc(sizeof(fz_filter_t));
-    if (f == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    f->function = NULL;
-    f->options  = FZ_FILTER_OPT_NONE;
-    fz_form_create(&f->envelope.adsr[FZ_ENV_ATTACK]);
-    fz_form_create(&f->envelope.adsr[FZ_ENV_DECAY]);
-    fz_form_create(&f->envelope.adsr[FZ_ENV_SUSTAIN]);
-    fz_form_create(&f->envelope.adsr[FZ_ENV_RELEASE]);
-    f->envelope.sizes[FZ_ENV_ATTACK]  = 0;
-    f->envelope.sizes[FZ_ENV_DECAY]   = 0;
-    f->envelope.sizes[FZ_ENV_SUSTAIN] = 0;
-    f->envelope.sizes[FZ_ENV_RELEASE] = 0;
-    f->envelope.state = FZ_ENV_ATTACK;
-    FZ_LIST_NEW(f->env_buffer, fz_real_t);
-    f->envelope.blend  = 0;
-    f->data     = NULL;
-    *filter     = f;
-    return FZ_RESULT_SUCCESS;
+    (void) args;
+    fz_filter_t *_self = (fz_filter_t*) self;
+    _self->filter      = NULL;
+    _self->options     = FZ_FILTER_OPT_NONE;
+    fz_list_new(_self->env_buffer, fz_real_t);
+    return self;
 }
 
 fz_uint_t
@@ -67,149 +52,62 @@ fz_filter_apply(
                 fz_list_t   *samples)
 {
     fz_uint_t i;
-    if (filter->function != NULL) {
+    if (filter->filter != NULL) {
         // @todo if opt use env -> progress env
         fz_list_clear(filter->env_buffer, samples->size);
         for (i = 0; i < filter->env_buffer->size; ++i) {
-            FZ_LIST_VAL(filter->env_buffer, i, fz_real_t) = 1;
+            fz_list_val(filter->env_buffer, i, fz_real_t) = 1;
         }
-        return filter->function(filter, samples, filter->env_buffer);
+        return filter->filter(filter, samples);
     }
     return 0;
 }
 
-fz_result_t
-fz_filter_lowpass_create(fz_filter_t **filter)
+fz_ptr_t
+fz_lowpass_construct(
+                     const fz_ptr_t  self,
+                     va_list        *args)
 {
-    fz_result_t result;
-    fz_filter_lowpass_t *f;
-    if ((result = fz_filter_create(filter)) != FZ_RESULT_SUCCESS) {
-        return result;
-    }
-    f = malloc(sizeof(fz_filter_lowpass_t));
-    if (f == NULL) {
-        // @todo fz_filter_destroy(filter);
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    f->rc   = 0.f;
-    f->last = 0.f;
-    (*filter)->data = f;
-    (*filter)->function = fz_filter_lowpass_function;
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t
-fz_filter_lowpass_rc_set(
-                         fz_filter_t *filter,
-                         fz_float_t  cutoff)
-{
-    if (filter == NULL || filter->data == NULL) {
-        return FZ_RESULT_INVALID_ARG;
-    }
-    ((fz_filter_lowpass_t*) filter->data)->rc = fabs(cutoff);
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t
-fz_filter_lowpass_rc_get(
-                         fz_filter_t *filter,
-                         fz_float_t  *cutoff)
-{
-    if (filter == NULL || filter->data == NULL) {
-        return FZ_RESULT_INVALID_ARG;
-    }
-    *cutoff = ((fz_filter_lowpass_t*) filter->data)->rc;
-    return FZ_RESULT_SUCCESS;
+    fz_lowpass_t *_self = 
+            ((const fz_object_t*) fz_filter)->construct(self, args);
+    ((fz_filter_t*) _self)->filter = fz_lowpass_filter;
+    _self->rc   = 0;
+    _self->last = 0;
+    return _self;
 }
 
 fz_uint_t
-fz_filter_lowpass_function(
-                           fz_filter_t *filter,
-                           fz_list_t   *samples,
-                           fz_list_t   *envelope)
+fz_lowpass_filter(
+                  fz_ptr_t  filter,
+                  fz_list_t *samples)
 {
-    fz_filter_lowpass_t *lowpass;
+    fz_filter_t  *flt = (fz_filter_t*)  filter;
+    fz_lowpass_t *lp  = (fz_lowpass_t*) filter;
     fz_uint_t i;
     fz_float_t dt = samples->size, a;
-    if (samples->size == 0 && filter->data != NULL) {
+    if (samples->size == 0) {
         return 0;
     }
-    lowpass = (fz_filter_lowpass_t*) filter->data;
     dt = (fz_float_t)samples->size;
-    a = dt/(lowpass->rc*FZ_LIST_VAL(envelope, 0, fz_real_t) + dt);
-    // @todo use envelope to recalc a in loop
+    a = dt/(lp->rc*fz_list_val(flt->env_buffer, 0, fz_real_t) + dt);
 
     // calc first amplitude from stored history
-    FZ_LIST_VAL(samples, 0, fz_amp_t) =
-        lowpass->last + (a*(FZ_LIST_VAL(samples, 0, fz_amp_t) - lowpass->last));
+    fz_list_val(samples, 0, fz_amp_t) =
+        lp->last + (a*(fz_list_val(samples, 0, fz_amp_t) - lp->last));
 
     for (i = 1; i < samples->size; ++i) {
-        a = dt/(lowpass->rc*FZ_LIST_VAL(envelope, i, fz_real_t) + dt);
-        FZ_LIST_VAL(samples, i, fz_amp_t) =
-            FZ_LIST_VAL(samples, i - 1, fz_amp_t) +
+        a = dt/(lp->rc*fz_list_val(flt->env_buffer, i, fz_real_t) + dt);
+        fz_list_val(samples, i, fz_amp_t) =
+            fz_list_val(samples, i - 1, fz_amp_t) +
                 (
                     a*
                         (
-                            FZ_LIST_VAL(samples, i, fz_amp_t) -
-                            FZ_LIST_VAL(samples, i - 1, fz_amp_t)
+                            fz_list_val(samples, i, fz_amp_t) -
+                            fz_list_val(samples, i - 1, fz_amp_t)
                          )
                 );
         // i.e. samples[i] = samples[i-1] + α * (samples[i] - samples[i-1]);
     }
-    lowpass->last = FZ_LIST_VAL(samples, samples->size - 1, fz_amp_t);
+    lp->last = fz_list_val(samples, samples->size - 1, fz_amp_t);
     return samples->size;
 }
-
-/*#include <stdio.h>
-
-fz_uint_t
-fz_filter_equalizer_apply(
-                          fz_filter_t *filter,
-                          fz_list_t   *samples)
-{
-    (void)filter;
-    fz_uint_t i;
-    fz_float_t data[samples->size];
-    gsl_fft_real_wavetable_float *real;
-    gsl_fft_halfcomplex_wavetable_float *hc;
-    gsl_fft_real_workspace_float *work;
-
-    for (i = 0; i < samples->size; ++i) {
-        data[i] = FZ_LIST_REF(samples, i, fz_sample_t)->value;
-        printf("%d;%d\n", i, (short) (((float)SHRT_MAX)*data[i]));
-    }
-
-    // @todo reuse allocated wavetables & workspace if big enough
-    work = gsl_fft_real_workspace_float_alloc(samples->size);
-
-    real = gsl_fft_real_wavetable_float_alloc(samples->size);
-    gsl_fft_real_float_transform(data, 1, samples->size, real, work);
-    gsl_fft_real_wavetable_float_free(real);
-
-    float rel = 0;
-    for (i = 0; i < samples->size; ++i) {
-        if (data[i] > rel) rel = data[i];
-    }
-    rel = 1.f/rel;
-
-    for (i = 0; i < samples->size; ++i) {
-        if (i > 10) data[i] *= 0;
-        printf("%d;%d\n", i, (short) (((float)SHRT_MAX)*data[i]*rel));
-    }
-
-    // t = bufferstorlek i sekunder
-    // freq = (trans x)/t
-
-    hc = gsl_fft_halfcomplex_wavetable_float_alloc(samples->size);
-    gsl_fft_halfcomplex_float_inverse(data, 1, samples->size, hc, work);
-    gsl_fft_halfcomplex_wavetable_float_free(hc);
-
-    gsl_fft_real_workspace_float_free(work);
-
-    for (i = 0; i < samples->size; ++i) {
-        FZ_LIST_REF(samples, i, fz_sample_t)->value = data[i];
-        printf("%d;%d\n", i, (short) (((float)SHRT_MAX)*data[i]));
-    }
-
-    return samples->size;
-}*/

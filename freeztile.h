@@ -29,14 +29,27 @@
 #ifndef _FZ_FREEZTILE_H_
 #define _FZ_FREEZTILE_H_
 
+#include <stdarg.h>
 #include "types.h"
 
-static const fz_result_t FZ_RESULT_SUCCESS         = 0;
-static const fz_result_t FZ_RESULT_NOT_IMPLEMENTED = -(1 << 0);
-static const fz_result_t FZ_RESULT_MALLOC_ERROR    = -(1 << 1);
-static const fz_result_t FZ_RESULT_LOCK_ERROR      = -(1 << 2);
-static const fz_result_t FZ_RESULT_IOOB_ERROR      = -(1 << 3);
-static const fz_result_t FZ_RESULT_INVALID_ARG     = -(1 << 4);
+/**
+ * FreeZtile return values
+ * 
+ */
+#define FZ_RESULT_SUCCESS          0
+#define FZ_RESULT_NOT_IMPLEMENTED -1
+#define FZ_RESULT_MALLOC_ERROR    -2
+#define FZ_RESULT_LOCK_ERROR      -3
+#define FZ_RESULT_IOOB_ERROR      -4
+#define FZ_RESULT_INVALID_ARG     -5
+
+/**
+ * 
+ * @param  fz_ptr_t type
+ * @param  ...
+ * @return fz_ptr_t New object of given type
+ */
+fz_ptr_t fz_new(const fz_ptr_t type, ...);
 
 /**
  * Allocate & initialize a mutex lock

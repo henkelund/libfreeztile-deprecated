@@ -35,6 +35,22 @@
 #include "lib/md5/global.h"
 #include "lib/md5/md5.h"
 
+fz_ptr_t
+fz_new(const fz_ptr_t type, ...)
+{
+    const fz_object_t* _type = (const fz_object_t*) type;
+    fz_ptr_t self = (fz_ptr_t) malloc(_type->size);
+    // put a type ref at top of self
+    *((const fz_object_t**) self) = type;
+    if (_type->construct) {
+        va_list ap;
+        va_start(ap, type);
+        self = _type->construct(self, &ap);
+        va_end(ap);
+    }
+    return self;
+}
+
 fz_result_t 
 fz_lock_create(fz_lock_t **lock)
 {

@@ -33,9 +33,8 @@
 #define FZ_HASH_SIZE 32
 #endif
 
+#include <stdarg.h>
 #include <pthread.h>
-/*#include <gsl/gsl_fft_real_float.h>
-#include <gsl/gsl_fft_halfcomplex_float.h>*/
 
 typedef float             fz_float_t;
 
@@ -51,7 +50,9 @@ typedef char              fz_char_t;
 
 typedef int               fz_result_t;
 
-typedef void*             fz_pointer_t;
+typedef void*             fz_ptr_t;
+
+typedef size_t            fz_size_t;
 
 typedef fz_ulong_t        fz_flags_t;
 
@@ -60,6 +61,15 @@ typedef fz_real_t         fz_amp_t;
 typedef fz_real_t         fz_frame_t;
 
 typedef pthread_mutex_t   fz_lock_t;
+
+// fz base class
+typedef struct {
+    fz_size_t   size;
+    fz_ptr_t  (*construct) (fz_ptr_t       self, va_list *args);
+    fz_ptr_t  (*destruct)  (fz_ptr_t       self);
+    fz_ptr_t  (*clone)     (const fz_ptr_t self);
+    fz_int_t  (*compare)   (const fz_ptr_t self, const fz_ptr_t other);
+} fz_object_t;
 
 // fz_list_t function types
 typedef fz_result_t       (*fz_lirm_f)(void *item);
@@ -71,13 +81,13 @@ typedef struct {
 } fz_pointf_t;
 
 typedef struct {
-    fz_pointer_t items;
-    fz_uint_t    type_size;
-    fz_char_t   *type_name;
-    fz_uint_t    size;
-    fz_uint_t    avail_size;
-    fz_lirm_f    remove;
-    fz_licmp_f   compare;
+    fz_ptr_t    items;
+    fz_uint_t   type_size;
+    fz_char_t  *type_name;
+    fz_uint_t   size;
+    fz_uint_t   avail_size;
+    fz_lirm_f   remove;
+    fz_licmp_f  compare;
 } fz_list_t;
 
 typedef struct {
@@ -88,13 +98,18 @@ typedef struct {
 
 typedef struct {
     fz_form_t  *form;
-    fz_frame_t  frame;
     fz_amp_t    amplitude;
-    fz_float_t  frequency;
     fz_real_t   phase;
     fz_float_t  sample_rate;
     fz_list_t  *frame_buffer;
-} fz_oscillator_t;
+} fz_osc_t;
+
+typedef struct {
+    fz_osc_t   *oscillator;
+    fz_frame_t  frame;
+    fz_real_t   frequency;
+    fz_real_t   targ_freq;
+} fz_ostate_t;
 
 typedef struct {
     fz_amp_t    start;
@@ -111,38 +126,37 @@ typedef struct {
 } fz_mccurve_t;
 
 typedef struct {
+    const fz_ptr_t   parent;
+    fz_uint_t      (*filter)(fz_ptr_t filter, fz_list_t *samples);
+    fz_flags_t       options;
+    fz_list_t       *env_buffer;
+} fz_filter_t;
+
+typedef struct {
+    fz_filter_t parent;
+    fz_float_t  rc;
+    fz_amp_t    last;
+} fz_lowpass_t;
+
+typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
+
+typedef struct {
+    fz_voice_t *voice;
+    fz_list_t  *ostates;
+} fz_note_t;
+
+/*typedef struct {
     fz_form_t *adsr[4];
     fz_uint_t  sizes[4];
     fz_uint_t  position;
     fz_uint_t  state;
-    fz_real_t  blend;
-} fz_envelope_t;
-
-// filter types
-typedef struct fz_flt_tag fz_filter_t;
-typedef fz_uint_t         (*fz_filter_f)(
-                                         fz_filter_t *filter,
-                                         fz_list_t   *samples,
-                                         fz_list_t   *envelope);
-
-struct fz_flt_tag {
-    fz_filter_f    function;
-    fz_flags_t     options;
-    fz_envelope_t  envelope;
-    fz_list_t     *env_buffer/*<fz_real_t>*/;
-    fz_pointer_t   data;
-};
-
-typedef struct {
-    fz_float_t rc;
-    fz_amp_t   last;
-} fz_filter_lowpass_t;
+    fz_real_t  mix;
+} fz_envelope_t;*/
 
 /*typedef struct {
-    gsl_fft_real_wavetable_float        *real;
-    gsl_fft_halfcomplex_wavetable_float *hc;
-    gsl_fft_real_workspace_float        *work;
-    fz_uint_t                           *size;
-} fz_filter_equalizer_t;*/
+    const fz_ptr_t  parent;
+    fz_list_t      *values;
+} fz_regulator_t;*/
+
 
 #endif // _FZ_TYPES_H_

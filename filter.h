@@ -29,6 +29,7 @@
 #ifndef _FZ_FILTER_H_
 #define _FZ_FILTER_H_
 
+#include <stdarg.h>
 #include "types.h"
 
 #define FZ_FILTER_OPT_NONE   0
@@ -40,11 +41,14 @@
 #define FZ_ENV_RELEASE 3
 
 /**
- *
- * @param filter
- * @return
+ * 
+ * @param self
+ * @param args
+ * @return 
  */
-fz_result_t fz_filter_create(fz_filter_t **filter);
+fz_ptr_t    fz_filter_construct(
+                             const fz_ptr_t  self,
+                             va_list        *args);
 
 /**
  *
@@ -57,31 +61,14 @@ fz_uint_t   fz_filter_apply(
                             fz_list_t   *samples);
 
 /**
- *
- * @param filter
- * @return
+ * 
+ * @param self
+ * @param args
+ * @return 
  */
-fz_result_t fz_filter_lowpass_create(fz_filter_t **filter);
-
-/**
- *
- * @param filter
- * @param cutoff
- * @return
- */
-fz_result_t fz_filter_lowpass_rc_set(
-                                     fz_filter_t *filter,
-                                     fz_float_t   cutoff);
-
-/**
- *
- * @param filter
- * @param cutoff
- * @return
- */
-fz_result_t fz_filter_lowpass_rc_get(
-                                     fz_filter_t *filter,
-                                     fz_float_t  *cutoff);
+fz_ptr_t    fz_lowpass_construct(
+                              const fz_ptr_t  self,
+                              va_list        *args);
 
 /**
  *
@@ -90,13 +77,29 @@ fz_result_t fz_filter_lowpass_rc_get(
  * @param envelope
  * @return
  */
-fz_uint_t   fz_filter_lowpass_function(
-                                       fz_filter_t *filter,
-                                       fz_list_t   *samples,
-                                       fz_list_t   *envelope);
+fz_uint_t   fz_lowpass_filter(
+                              fz_ptr_t   filter,
+                              fz_list_t *samples);
 
-/*fz_uint_t  fz_filter_equalizer_apply(
-                                     fz_filter_t *filter,
-                                     fz_list_t   *samples);*/
+// static filter object descriptor
+static const fz_object_t _fz_filter = {
+    sizeof (fz_filter_t),
+    fz_filter_construct,
+    NULL,
+    NULL,
+    NULL
+};
+
+const fz_ptr_t fz_filter = (const fz_ptr_t) &_fz_filter;
+
+static const fz_object_t _fz_lowpass = {
+    sizeof (fz_lowpass_t),
+    fz_lowpass_construct,
+    NULL,
+    NULL,
+    NULL
+};
+
+const fz_ptr_t fz_lowpass = (const fz_ptr_t) &_fz_lowpass;
 
 #endif // _FZ_FILTER_H_

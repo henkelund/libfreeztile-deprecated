@@ -39,7 +39,7 @@
  * @param  type       type of list
  * @return 
  */
-#define FZ_LIST_NEW(list, type) \
+#define fz_list_new(list, type) \
             fz_list_create(&list, sizeof(type), #type)
 
 /**
@@ -50,7 +50,7 @@
  * @param  type       type Type of item
  * @return type
  */
-#define FZ_LIST_VAL(list, i, type) \
+#define fz_list_val(list, i, type) \
             (*(((type*)list->items) + i))
 
 /**
@@ -61,7 +61,7 @@
  * @param  type       type Type of item
  * @return *type
  */
-#define FZ_LIST_REF(list, i, type) \
+#define fz_list_ref(list, i, type) \
             (((type*)list->items) + i)
 
 /**
@@ -71,7 +71,7 @@
  * @param  type       type
  * @return bool       True if type matches
  */
-#define FZ_LIST_TYPE(list, type) \
+#define fz_list_type(list, type) \
             (list->type_size == sizeof(type) && strcmp(list->type_name, #type) == 0)
 
 /**
@@ -114,25 +114,25 @@ fz_result_t fz_list_clear(
 
 /**
  * 
- * @param  fz_list_t    *list
- * @param  fz_pointer_t item
+ * @param  fz_list_t   *list
+ * @param  fz_ptr_t     item
  * @param  fz_uint_t    pos
  * @return fz_result_t
  */
 fz_result_t fz_list_insert(
-                           fz_list_t    *list,
-                           fz_pointer_t item,
-                           fz_uint_t    pos);
+                           fz_list_t *list,
+                           fz_ptr_t   item,
+                           fz_uint_t  pos);
 
 /**
  * 
- * @param  fz_list_t    *list
- * @param  fz_pointer_t item
+ * @param  fz_list_t   *list
+ * @param  fz_ptr_t     item
  * @return fz_result_t
  */
 fz_result_t fz_list_append(
-                           fz_list_t    *list,
-                           fz_pointer_t item);
+                           fz_list_t *list,
+                           fz_ptr_t   item);
 
 /**
  * 

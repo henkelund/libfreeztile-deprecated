@@ -105,8 +105,8 @@ fz_list_grow(
                fz_list_t *list,
                fz_uint_t min_size)
 {
-    fz_uint_t    malloc_size;
-    fz_pointer_t items;
+    fz_uint_t malloc_size;
+    fz_ptr_t  items;
     if (min_size > list->avail_size) {
         malloc_size = min_size < 10 ? 10 : 
             (fz_uint_t) pow(2, ceil(log(min_size)/log(2)));
@@ -126,9 +126,9 @@ fz_list_grow(
 
 fz_result_t
 fz_list_insert(
-               fz_list_t    *list, 
-               fz_pointer_t item,
-               fz_uint_t    pos)
+               fz_list_t *list, 
+               fz_ptr_t   item,
+               fz_uint_t  pos)
 {
     fz_uint_t   size;
     fz_result_t result;
@@ -157,8 +157,8 @@ fz_list_insert(
 
 fz_result_t
 fz_list_append(
-               fz_list_t    *list,
-               fz_pointer_t item)
+               fz_list_t *list,
+               fz_ptr_t   item)
 {
     return fz_list_insert(list, item, list->size);
 }
