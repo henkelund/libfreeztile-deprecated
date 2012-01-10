@@ -32,37 +32,43 @@
 #include "form.h"
 #include "list.h"
 
-fz_result_t
-fz_oscillator_create(fz_osc_t **oscillator)
+// ### PRIVATE ###
+
+fz_ptr_t
+_fz_osc_construct(
+                  const fz_ptr_t  self,
+                  va_list        *args)
 {
-    fz_result_t result;
-    fz_osc_t *osc = malloc(sizeof(fz_osc_t));
-    if (osc == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    if ((result = fz_form_create(&osc->form)) != FZ_RESULT_SUCCESS) {
-        free(osc);
-        return result;
-    }
-    if ((result = fz_list_new(osc->frame_buffer, fz_frame_t))
-            != FZ_RESULT_SUCCESS) {
-        free(osc);
-        fz_form_destroy(&osc->form);
-        return result;
-    }
-    osc->amplitude   = 1;
-    osc->phase       = 0;
-    osc->sample_rate = 44100;
-    *oscillator      = osc;
-    return FZ_RESULT_SUCCESS;
+    (void) args;
+    fz_osc_t *_self     = (fz_osc_t*) self;
+    _self->form         = fz_new(fz_form);
+    _self->frame_buffer = fz_list_new(fz_frame_t);
+    _self->amplitude    = 1;
+    _self->phase        = 0;
+    _self->sample_rate  = 44100;
+    return _self;
 }
 
-fz_result_t
-fz_oscillator_destroy(fz_osc_t **oscillator)
+fz_ptr_t
+_fz_osc_destruct(fz_ptr_t self)
 {
-    (void)oscillator;
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    fz_osc_t *_self = (fz_osc_t*) self;
+    fz_free(_self->frame_buffer);
+    fz_free(_self->form);
+    return _self;
 }
+
+static const fz_object_t _fz_osc = {
+    sizeof (fz_osc_t),
+    _fz_osc_construct,
+    _fz_osc_destruct,
+    NULL,
+    NULL
+};
+
+// ### PUBLIC ###
+
+const fz_ptr_t fz_osc = (const fz_ptr_t) &_fz_osc;
 
 fz_result_t     
 fz_oscillator_apply(

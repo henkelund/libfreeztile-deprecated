@@ -33,8 +33,10 @@
 #include "list.h"
 #include "form.h"
 
+// ### PRIVATE ###
+
 fz_ptr_t
-fz_filter_construct(
+_fz_filter_construct(
                     const fz_ptr_t  self,
                     va_list        *args)
 {
@@ -42,42 +44,14 @@ fz_filter_construct(
     fz_filter_t *_self = (fz_filter_t*) self;
     _self->filter      = NULL;
     _self->options     = FZ_FILTER_OPT_NONE;
-    fz_list_new(_self->env_buffer, fz_real_t);
+    // env_buffer won't be here for long so 
+    // no need to write filter destructor right now
+    _self->env_buffer  = fz_list_new(fz_real_t);
     return self;
 }
 
 fz_uint_t
-fz_filter_apply(
-                fz_filter_t *filter, 
-                fz_list_t   *samples)
-{
-    fz_uint_t i;
-    if (filter->filter != NULL) {
-        // @todo if opt use env -> progress env
-        fz_list_clear(filter->env_buffer, samples->size);
-        for (i = 0; i < filter->env_buffer->size; ++i) {
-            fz_list_val(filter->env_buffer, i, fz_real_t) = 1;
-        }
-        return filter->filter(filter, samples);
-    }
-    return 0;
-}
-
-fz_ptr_t
-fz_lowpass_construct(
-                     const fz_ptr_t  self,
-                     va_list        *args)
-{
-    fz_lowpass_t *_self = 
-            ((const fz_object_t*) fz_filter)->construct(self, args);
-    ((fz_filter_t*) _self)->filter = fz_lowpass_filter;
-    _self->rc   = 0;
-    _self->last = 0;
-    return _self;
-}
-
-fz_uint_t
-fz_lowpass_filter(
+_fz_lowpass_filter(
                   fz_ptr_t  filter,
                   fz_list_t *samples)
 {
@@ -110,4 +84,56 @@ fz_lowpass_filter(
     }
     lp->last = fz_list_val(samples, samples->size - 1, fz_amp_t);
     return samples->size;
+}
+
+fz_ptr_t
+_fz_lowpass_construct(
+                     const fz_ptr_t  self,
+                     va_list        *args)
+{
+    fz_lowpass_t *_self = 
+            ((const fz_object_t*) fz_filter)->construct(self, args);
+    ((fz_filter_t*) _self)->filter = _fz_lowpass_filter;
+    _self->rc   = 0;
+    _self->last = 0;
+    return _self;
+}
+
+// static filter object descriptor
+static const fz_object_t _fz_filter = {
+    sizeof (fz_filter_t),
+    _fz_filter_construct,
+    NULL,
+    NULL,
+    NULL
+};
+
+static const fz_object_t _fz_lowpass = {
+    sizeof (fz_lowpass_t),
+    _fz_lowpass_construct,
+    NULL,
+    NULL,
+    NULL
+};
+
+// ### PUBLIC ###
+
+const fz_ptr_t fz_filter =  (const fz_ptr_t) &_fz_filter;
+const fz_ptr_t fz_lowpass = (const fz_ptr_t) &_fz_lowpass;
+
+fz_uint_t
+fz_filter_apply(
+                fz_filter_t *filter, 
+                fz_list_t   *samples)
+{
+    fz_uint_t i;
+    if (filter->filter != NULL) {
+        // @todo if opt use env -> progress env
+        fz_list_clear(filter->env_buffer, samples->size);
+        for (i = 0; i < filter->env_buffer->size; ++i) {
+            fz_list_val(filter->env_buffer, i, fz_real_t) = 1;
+        }
+        return filter->filter(filter, samples);
+    }
+    return 0;
 }

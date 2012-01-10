@@ -42,24 +42,8 @@
         .b         = {.x = 0.75f, .y = -3.f}, \
     }
 
-static const unsigned int FZ_FORM_STATE_NONE       = 0;
-static const unsigned int FZ_FORM_STATE_APPLYING   = (1 << 0);
-
-/**
- * Allocate & initialize the given form struct
- * 
- * @param  fz_form_t **form
- * @return fz_result
- */
-fz_result_t fz_form_create(fz_form_t **form);
-
-/**
- * Free resources of the given form struct
- * 
- * @param  fz_form_t **form
- * @return fz_result
- */
-fz_result_t fz_form_destroy(fz_form_t **form);
+#define FZ_FORM_STATE_NONE      0;
+#define FZ_FORM_STATE_APPLYING (1 << 0);
 
 /**
  *
@@ -100,5 +84,7 @@ fz_result_t fz_multicurve_normalize_shares(
 fz_result_t fz_multicurve_render(
                                  fz_list_t  *multicurve,
                                  fz_form_t  *form);
+
+const fz_ptr_t fz_form;
 
 #endif // _FZ_FORM_H_

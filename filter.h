@@ -41,16 +41,6 @@
 #define FZ_ENV_RELEASE 3
 
 /**
- * 
- * @param self
- * @param args
- * @return 
- */
-fz_ptr_t    fz_filter_construct(
-                             const fz_ptr_t  self,
-                             va_list        *args);
-
-/**
  *
  * @param filter
  * @param samples
@@ -60,46 +50,7 @@ fz_uint_t   fz_filter_apply(
                             fz_filter_t *filter, 
                             fz_list_t   *samples);
 
-/**
- * 
- * @param self
- * @param args
- * @return 
- */
-fz_ptr_t    fz_lowpass_construct(
-                              const fz_ptr_t  self,
-                              va_list        *args);
-
-/**
- *
- * @param filter
- * @param samples
- * @param envelope
- * @return
- */
-fz_uint_t   fz_lowpass_filter(
-                              fz_ptr_t   filter,
-                              fz_list_t *samples);
-
-// static filter object descriptor
-static const fz_object_t _fz_filter = {
-    sizeof (fz_filter_t),
-    fz_filter_construct,
-    NULL,
-    NULL,
-    NULL
-};
-
-const fz_ptr_t fz_filter = (const fz_ptr_t) &_fz_filter;
-
-static const fz_object_t _fz_lowpass = {
-    sizeof (fz_lowpass_t),
-    fz_lowpass_construct,
-    NULL,
-    NULL,
-    NULL
-};
-
-const fz_ptr_t fz_lowpass = (const fz_ptr_t) &_fz_lowpass;
+const fz_ptr_t fz_filter;
+const fz_ptr_t fz_lowpass;
 
 #endif // _FZ_FILTER_H_

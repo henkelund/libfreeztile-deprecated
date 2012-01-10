@@ -33,37 +33,40 @@
 #include "freeztile.h"
 #include "list.h"
 
-fz_result_t 
-fz_form_create(fz_form_t **form)
+// ### PRIVATE ###
+
+fz_ptr_t
+_fz_form_construct(
+                  const fz_ptr_t  self,
+                  va_list        *args)
 {
-    fz_result_t result;
-    fz_form_t *f = malloc(sizeof(fz_form_t));
-    if (f == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    if ((result = fz_list_new(f->template, fz_amp_t))
-            != FZ_RESULT_SUCCESS) {
-        free(f);
-        return result;
-    }
-    f->state = FZ_FORM_STATE_NONE;
-    memset(f->version, 0, FZ_HASH_SIZE);
-    *form = f;
-    return FZ_RESULT_SUCCESS;
+    fz_form_t *_self = (fz_form_t*) self;
+    (void) args;
+    _self->template  = fz_list_new(fz_amp_t);
+    _self->state     = FZ_FORM_STATE_NONE;
+    memset(_self->version, 0, FZ_HASH_SIZE);
+    return _self;
 }
 
-fz_result_t
-fz_form_destroy(fz_form_t **form)
+fz_ptr_t
+_fz_form_destruct(fz_ptr_t self)
 {
-    fz_result_t result;
-    fz_form_t   *f = *form;
-    if ((result = fz_list_destroy(&f->template)) != FZ_RESULT_SUCCESS) {
-        return result;
-    }
-    free(f);
-    *form = NULL;
-    return FZ_RESULT_SUCCESS;
+    fz_form_t *_self = (fz_form_t*) self;
+    fz_free(_self->template);
+    return _self;
 }
+
+static const fz_object_t _fz_form = {
+    sizeof (fz_form_t),
+    _fz_form_construct,
+    _fz_form_destruct,
+    NULL,
+    NULL
+};
+
+// ### PUBLIC ###
+
+const fz_ptr_t fz_form = (const fz_ptr_t) &_fz_form;
 
 fz_result_t
 fz_form_apply(
@@ -188,9 +191,8 @@ fz_multicurve_render(
     for (i = 0; i < multicurve->size; ++i) {
         mccurve = fz_list_ref(multicurve, i, fz_mccurve_t);
         // create curve cache form if NULL
-        if (mccurve->form == NULL && (result = fz_form_create(&mccurve->form)) 
-                != FZ_RESULT_SUCCESS) {
-            return result;
+        if (mccurve->form == NULL) {
+            mccurve->form = fz_new(fz_form);
         }
         // make room for form
         if ((result = fz_list_clear(

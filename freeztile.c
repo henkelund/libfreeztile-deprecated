@@ -31,15 +31,20 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <assert.h>
 #include "freeztile.h"
 #include "lib/md5/global.h"
 #include "lib/md5/md5.h"
+
+#include <stdio.h>
+static fz_int_t _fz_obj_count = 0;
 
 fz_ptr_t
 fz_new(const fz_ptr_t type, ...)
 {
     const fz_object_t* _type = (const fz_object_t*) type;
     fz_ptr_t self = (fz_ptr_t) malloc(_type->size);
+    assert(self);
     // put a type ref at top of self
     *((const fz_object_t**) self) = type;
     if (_type->construct) {
@@ -48,53 +53,20 @@ fz_new(const fz_ptr_t type, ...)
         self = _type->construct(self, &ap);
         va_end(ap);
     }
+    printf("%d objects (+)\n", ++_fz_obj_count);
     return self;
 }
 
-fz_result_t 
-fz_lock_create(fz_lock_t **lock)
+void
+fz_free(fz_ptr_t self)
 {
-    fz_lock_t *mutex = malloc(sizeof(fz_lock_t));
-    if (mutex == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
+    // type pointer is at top of object, @see fz_new
+    const fz_object_t **type = self;
+    if (self && *type && (*type)->destruct) {
+        self = (*type)->destruct(self);
     }
-    if (pthread_mutex_init(mutex, NULL) != 0) {
-        free(mutex);
-        return FZ_RESULT_LOCK_ERROR;
-    }
-    *lock = mutex;
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t 
-fz_lock_destroy(fz_lock_t **lock)
-{
-    if (pthread_mutex_destroy(*lock) != 0 && errno != EINVAL) {
-        return FZ_RESULT_LOCK_ERROR;
-    }
-    free(*lock);
-    *lock = NULL;
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t
-fz_lock_acquire(fz_lock_t *lock)
-{
-    fz_result_t result;
-    if ((result = pthread_mutex_lock(lock)) != 0) {
-        return FZ_RESULT_LOCK_ERROR;
-    }
-    return FZ_RESULT_SUCCESS;
-}
-
-fz_result_t
-fz_lock_release(fz_lock_t *lock)
-{
-    fz_result_t result;
-    if ((result = pthread_mutex_unlock(lock)) != 0) {
-        return FZ_RESULT_LOCK_ERROR;
-    }
-    return FZ_RESULT_SUCCESS;
+    free(self);
+    printf("%d objects (-)\n", --_fz_obj_count);
 }
 
 fz_result_t
@@ -127,8 +99,6 @@ fz_result_string(fz_result_t result)
         return "not implemented";
     } else if (result == FZ_RESULT_MALLOC_ERROR) {
         return "memory allocation error";
-    } else if (result == FZ_RESULT_LOCK_ERROR) {
-        return "lock error";
     } else if (result == FZ_RESULT_IOOB_ERROR) {
         return "index out-of-bounds error";
     } else if (result == FZ_RESULT_INVALID_ARG) {

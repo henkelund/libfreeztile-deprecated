@@ -29,56 +29,63 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <assert.h>
 #include "list.h"
 #include "freeztile.h"
 
-fz_result_t
-fz_list_create(
-               fz_list_t **list,
-               fz_uint_t   type_size,
-               fz_char_t  *type_name)
+// ### PRIVATE ###
+
+fz_ptr_t
+_fz_list_construct(
+                  const fz_ptr_t  self,
+                  va_list        *args)
 {
-    fz_list_t *ls = (fz_list_t*)malloc(sizeof(fz_list_t));
-    if (ls == NULL) {
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    ls->type_name = (fz_char_t*)malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
-    if (ls->type_name == NULL) {
-        free(ls);
-        return FZ_RESULT_MALLOC_ERROR;
-    }
-    strcpy(ls->type_name, type_name);
-    ls->items      = NULL;
-    ls->type_size  = type_size;
-    ls->size       = 0;
-    ls->avail_size = 0;
-    ls->remove     = NULL;
-    ls->compare    = NULL;
-    *list          = ls;
-    return FZ_RESULT_SUCCESS;
+    fz_list_t       *_self     = (fz_list_t*) self;
+    fz_uint_t        type_size = va_arg(*args, fz_uint_t);
+    const fz_char_t *type_name = va_arg(*args, fz_char_t*);
+    _self->type_name =
+            (fz_char_t*) malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
+    assert(_self->type_name);
+    strcpy(_self->type_name, type_name);
+    _self->items      = NULL;
+    _self->type_size  = type_size;
+    _self->size       = 0;
+    _self->avail_size = 0;
+    _self->remove     = NULL;
+    _self->compare    = NULL;
+    return _self;
 }
 
-fz_result_t
-fz_list_destroy(fz_list_t **list)
+fz_ptr_t
+_fz_list_destruct(fz_ptr_t self)
 {
-    fz_list_t *ls = *list;
+    fz_list_t *_self = (fz_list_t*) self;
     fz_uint_t i;
-    // free items if function provided
-    if (ls->remove != NULL) {
-        for (i = 0; i < ls->size; ++i) {
-            ls->remove(ls->items + (i*ls->type_size));
+    if (_self->remove != NULL) {
+        for (i = 0; i < _self->size; ++i) {
+            _self->remove(_self->items + (i*_self->type_size));
         }
     }
     // free item storage
-    if (ls->items != NULL) {
-        free(ls->items);
+    if (_self->items != NULL) {
+        free(_self->items);
     }
-    free(ls->type_name);
-    // free list storage
-    free(ls);
-    *list = NULL;
-    return FZ_RESULT_SUCCESS;
+    free(_self->type_name);
+    _self->type_name = NULL;
+    return _self;
 }
+
+static const fz_object_t _fz_list = {
+    sizeof (fz_list_t),
+    _fz_list_construct,
+    _fz_list_destruct,
+    NULL,
+    NULL
+};
+
+// ### PUBLIC ###
+
+const fz_ptr_t fz_list = (const fz_ptr_t) &_fz_list;
 
 fz_result_t
 fz_list_clear(

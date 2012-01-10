@@ -39,9 +39,8 @@
 #define FZ_RESULT_SUCCESS          0
 #define FZ_RESULT_NOT_IMPLEMENTED -1
 #define FZ_RESULT_MALLOC_ERROR    -2
-#define FZ_RESULT_LOCK_ERROR      -3
-#define FZ_RESULT_IOOB_ERROR      -4
-#define FZ_RESULT_INVALID_ARG     -5
+#define FZ_RESULT_IOOB_ERROR      -3
+#define FZ_RESULT_INVALID_ARG     -4
 
 /**
  * 
@@ -49,39 +48,13 @@
  * @param  ...
  * @return fz_ptr_t New object of given type
  */
-fz_ptr_t fz_new(const fz_ptr_t type, ...);
+fz_ptr_t    fz_new(const fz_ptr_t type, ...);
 
 /**
- * Allocate & initialize a mutex lock
  * 
- * @param  fz_lock_t **lock
- * @return fz_result
+ * @param  fz_ptr_t self
  */
-fz_result_t fz_lock_create(fz_lock_t **lock);
-
-/**
- * Destroy a mutex lock
- * 
- * @param  fz_lock_t **lock
- * @return fz_result
- */
-fz_result_t fz_lock_destroy(fz_lock_t **lock);
-
-/**
- * Acquire a mutex lock
- * 
- * @param  fz_lock_t *lock
- * @return fz_result
- */
-fz_result_t fz_lock_acquire(fz_lock_t *lock);
-
-/**
- * Release a mutex lock
- * 
- * @param  fz_lock_t *lock
- * @return fz_result
- */
-fz_result_t fz_lock_release(fz_lock_t *lock);
+void        fz_free(fz_ptr_t self);
 
 /**
  * This function is implemented using the RFC 1321 MD5 Message-Digest Algorithm

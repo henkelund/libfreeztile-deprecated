@@ -34,7 +34,6 @@
 #endif
 
 #include <stdarg.h>
-#include <pthread.h>
 
 typedef float             fz_float_t;
 
@@ -60,8 +59,6 @@ typedef fz_real_t         fz_amp_t;
 
 typedef fz_real_t         fz_frame_t;
 
-typedef pthread_mutex_t   fz_lock_t;
-
 // fz base class
 typedef struct {
     fz_size_t   size;
@@ -71,37 +68,36 @@ typedef struct {
     fz_int_t  (*compare)   (const fz_ptr_t self, const fz_ptr_t other);
 } fz_object_t;
 
-// fz_list_t function types
-typedef fz_result_t       (*fz_lirm_f)(void *item);
-typedef fz_int_t          (*fz_licmp_f)(void *a, void *b);
-
 typedef struct {
     fz_float_t x;
     fz_float_t y;
 } fz_pointf_t;
 
 typedef struct {
-    fz_ptr_t    items;
-    fz_uint_t   type_size;
-    fz_char_t  *type_name;
-    fz_uint_t   size;
-    fz_uint_t   avail_size;
-    fz_lirm_f   remove;
-    fz_licmp_f  compare;
+    const fz_ptr_t   _scp; // static class pointer
+    fz_ptr_t         items;
+    fz_uint_t        type_size;
+    fz_char_t       *type_name;
+    fz_uint_t        size;
+    fz_uint_t        avail_size;
+    fz_result_t    (*remove) (fz_ptr_t item);
+    fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
 } fz_list_t;
 
 typedef struct {
-    fz_uint_t  state;
-    fz_list_t *template;
-    fz_char_t  version[FZ_HASH_SIZE];
+    const fz_ptr_t  _scp;
+    fz_uint_t       state;
+    fz_list_t      *template;
+    fz_char_t       version[FZ_HASH_SIZE];
 } fz_form_t;
 
 typedef struct {
-    fz_form_t  *form;
-    fz_amp_t    amplitude;
-    fz_real_t   phase;
-    fz_float_t  sample_rate;
-    fz_list_t  *frame_buffer;
+    const fz_ptr_t  _scp;
+    fz_form_t      *form;
+    fz_amp_t        amplitude;
+    fz_real_t       phase;
+    fz_float_t      sample_rate;
+    fz_list_t      *frame_buffer;
 } fz_osc_t;
 
 typedef struct {
@@ -126,14 +122,14 @@ typedef struct {
 } fz_mccurve_t;
 
 typedef struct {
-    const fz_ptr_t   parent;
+    const fz_ptr_t   _scp;
     fz_uint_t      (*filter)(fz_ptr_t filter, fz_list_t *samples);
     fz_flags_t       options;
     fz_list_t       *env_buffer;
 } fz_filter_t;
 
 typedef struct {
-    fz_filter_t parent;
+    fz_filter_t _parent;
     fz_float_t  rc;
     fz_amp_t    last;
 } fz_lowpass_t;
@@ -141,8 +137,9 @@ typedef struct {
 typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
 
 typedef struct {
-    fz_voice_t *voice;
-    fz_list_t  *ostates;
+    const fz_ptr_t  _scp;
+    fz_voice_t     *voice;
+    fz_list_t      *ostates;
 } fz_note_t;
 
 /*typedef struct {
@@ -154,7 +151,7 @@ typedef struct {
 } fz_envelope_t;*/
 
 /*typedef struct {
-    const fz_ptr_t  parent;
+    const fz_ptr_t  _scp;
     fz_list_t      *values;
 } fz_regulator_t;*/
 

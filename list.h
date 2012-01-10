@@ -30,6 +30,7 @@
 #define _FZ_LIST_H_
 
 #include <string.h>
+#include <stdarg.h>
 #include "types.h"
 
 /**
@@ -39,8 +40,8 @@
  * @param  type       type of list
  * @return 
  */
-#define fz_list_new(list, type) \
-            fz_list_create(&list, sizeof(type), #type)
+#define fz_list_new(type) \
+            fz_new(fz_list, sizeof(type), #type)
 
 /**
  * Convenience macro for list item retrieval
@@ -76,31 +77,13 @@
 
 /**
  * 
- * @param  fz_list_t   **list
- * @param  fz_uint_t   item_size
- * @return fz_result_t
- */
-fz_result_t fz_list_create(
-                           fz_list_t **list,
-                           fz_uint_t   type_size,
-                           fz_char_t  *type_name);
-
-/**
- * 
- * @param  fz_list_t   **list
- * @return fz_result_t
- */
-fz_result_t fz_list_destroy(fz_list_t **list);
-
-/**
- * 
  * @param  fz_list_t *list
  * @param  fz_uint_t min_size
  * @return fz_result
  */
 fz_result_t fz_list_grow(
                          fz_list_t *list,
-                         fz_uint_t min_size);
+                         fz_uint_t  min_size);
 
 /**
  * 
@@ -110,7 +93,7 @@ fz_result_t fz_list_grow(
  */
 fz_result_t fz_list_clear(
                           fz_list_t *list,
-                          fz_uint_t size);
+                          fz_uint_t  size);
 
 /**
  * 
@@ -142,6 +125,8 @@ fz_result_t fz_list_append(
  */
 fz_result_t fz_list_remove(
                            fz_list_t *list,
-                           fz_uint_t pos);
+                           fz_uint_t  pos);
+
+const fz_ptr_t fz_list;
 
 #endif // _FZ_LIST_H_
