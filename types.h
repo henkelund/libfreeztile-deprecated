@@ -29,10 +29,6 @@
 #ifndef _FZ_TYPES_H_
 #define _FZ_TYPES_H_
 
-#ifndef FZ_HASH_SIZE
-#define FZ_HASH_SIZE 32
-#endif
-
 #include <stdarg.h>
 
 typedef float             fz_float_t;
@@ -88,7 +84,7 @@ typedef struct {
     const fz_ptr_t  _scp;
     fz_uint_t       state;
     fz_list_t      *template;
-    fz_char_t       version[FZ_HASH_SIZE];
+    fz_uint_t       version;
 } fz_form_t;
 
 typedef struct {

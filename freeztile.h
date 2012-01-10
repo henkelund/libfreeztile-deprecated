@@ -57,15 +57,15 @@ fz_ptr_t    fz_new(const fz_ptr_t type, ...);
 void        fz_free(fz_ptr_t self);
 
 /**
- * This function is implemented using the RFC 1321 MD5 Message-Digest Algorithm
+ * Returns a DJBX33X hash integer of the given data
  * 
- * @see http://www.ietf.org/rfc/rfc1321.txt
- * @param char      *buffer
- * @param void      *data
- * @param fz_uint_t size
+ * @param  data
+ * @param  size
  * @return 
  */
-fz_result_t fz_hash(char *buffer/*[FZ_HASH_SIZE]*/, void *data, fz_uint_t size);
+fz_uint_t   fz_hash(
+                    const fz_char_t *data,
+                    fz_size_t        size);
 
 /**
  * 

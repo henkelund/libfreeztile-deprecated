@@ -33,8 +33,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include "freeztile.h"
-#include "lib/md5/global.h"
-#include "lib/md5/md5.h"
 
 #include <stdio.h>
 static fz_int_t _fz_obj_count = 0;
@@ -69,25 +67,16 @@ fz_free(fz_ptr_t self)
     printf("%d objects (-)\n", --_fz_obj_count);
 }
 
-fz_result_t
+fz_uint_t
 fz_hash(
-        char *buffer,
-        void *data,
-        fz_uint_t size)
+        const fz_char_t *data,
+        fz_size_t        size)
 {
-    fz_uint_t i;
-    unsigned char digest[16];
-    MD5_CTX context;
-    MD5Init(&context);
-    MD5Update(&context, (unsigned char*)data, size);
-    MD5Final(digest, &context);
-
-    memset(buffer, 0, FZ_HASH_SIZE);
-    for (i = 0; i < 16 && i < FZ_HASH_SIZE/2; ++i) {
-        sprintf(buffer + (i*2), "%02x", digest[i]);
+    fz_uint_t hash = 5381;
+    for (; size > 0; --size) {
+        hash = ((hash << 5) + hash) ^ *data++;
     }
-    
-    return FZ_RESULT_SUCCESS;
+    return hash;
 }
 
 const char*

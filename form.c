@@ -44,7 +44,7 @@ _fz_form_construct(
     (void) args;
     _self->template  = fz_list_new(fz_amp_t);
     _self->state     = FZ_FORM_STATE_NONE;
-    memset(_self->version, 0, FZ_HASH_SIZE);
+    _self->version   = 0;
     return _self;
 }
 
@@ -98,7 +98,7 @@ fz_curve_render(
                 fz_form_t   *form)
 {
     // declare vars
-    fz_uint_t  i;           // counter
+    fz_uint_t  i, hash;     // counter, version
     fz_float_t pos,
                t,
                t2,          // pow(t, 2)
@@ -110,13 +110,10 @@ fz_curve_render(
                c1y,
                c2y,
                c3y;
-    char       hash[FZ_HASH_SIZE];
     
     // don't bother to render if curve hasn't changed (force option?)
-    // @todo Performance test of hash function.
-    // If it's slower than the actual curve rendering this is just stupid 
-    fz_hash(hash, curve, sizeof(fz_curve_t));
-    if (strncmp(hash, form->version, FZ_HASH_SIZE) == 0) {
+    hash = fz_hash((fz_char_t*) curve, sizeof (fz_curve_t));
+    if (hash == form->version) {
         return FZ_RESULT_SUCCESS;
     }
     
@@ -150,7 +147,7 @@ fz_curve_render(
     }
     
     // update form version with curve hash
-    memcpy(form->version, hash, FZ_HASH_SIZE);
+    form->version = hash;
     return FZ_RESULT_SUCCESS;
 }
 
