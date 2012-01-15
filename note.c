@@ -30,6 +30,7 @@
 #include "note.h"
 #include "freeztile.h"
 #include "list.h"
+#include "oscillator.h"
 
 // ### PRIVATE ###
 
@@ -49,16 +50,21 @@ fz_ptr_t
 _fz_note_destruct(fz_ptr_t self)
 {
     fz_note_t *_self = (fz_note_t*) self;
-    // if we move osc frame_buf's to ctx we should free those as well
+    fz_uint_t i;
+    for (i = 0; i < _self->octxs->size; ++i) {
+        fz_free(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
+    }
     fz_free(_self->octxs);
     // _self->voice isn't owned by the note
     return _self;
 }
 
-fz_octx_t _fz_default_octx = {
-    .osc   = NULL,
-    .frame = 0,
-    .freq  = 0
+static fz_octx_t _fz_default_octx = {
+    .osc      = NULL,
+    .frame    = 0,
+    .framebuf = NULL,
+    .freq     = 0,
+    .amp      = 1
 };
 
 fz_result_t
@@ -66,8 +72,10 @@ _fz_note_sync(fz_note_t *note)
 {
     fz_uint_t i;
     for (i = 0; i < note->voice->size; ++i) {
-        if (i <= note->octxs->size) {
+        if (i == note->octxs->size) {
             fz_list_append(note->octxs, &_fz_default_octx);
+            fz_list_ref(note->octxs, i, fz_octx_t)->framebuf = 
+                    fz_list_new(fz_frame_t);
         }
         fz_list_ref(note->octxs, i, fz_octx_t)->osc = 
                 fz_list_val(note->voice, i, fz_osc_t*);
@@ -92,9 +100,18 @@ fz_note_apply(
               fz_note_t *note,
               fz_list_t *samples)
 {
-    fz_result_t result = _fz_note_sync(note);
+    fz_octx_t   *ctx;
+    fz_uint_t    i;
+    fz_result_t  result = _fz_note_sync(note);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
-    return FZ_RESULT_NOT_IMPLEMENTED;
+    for (i = 0; i < note->octxs->size; ++i) {
+        ctx = fz_list_ref(note->octxs, i, fz_octx_t);
+        ctx->freq = 440;
+        //ctx->amp = note->amp*(1.0/note->voice->size);
+        fz_list_clear(ctx->framebuf, samples->size);
+        fz_oscillator_apply(ctx, samples);
+    }
+    return FZ_RESULT_SUCCESS;
 }

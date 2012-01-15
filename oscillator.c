@@ -42,8 +42,7 @@ _fz_osc_construct(
     (void) args;
     fz_osc_t *_self     = (fz_osc_t*) self;
     _self->form         = fz_new(fz_form);
-    _self->frame_buffer = fz_list_new(fz_frame_t);
-    _self->amplitude    = 1;
+    _self->amp          = 1;
     _self->phase        = 0;
     _self->sample_rate  = 44100;
     return _self;
@@ -53,7 +52,6 @@ fz_ptr_t
 _fz_osc_destruct(fz_ptr_t self)
 {
     fz_osc_t *_self = (fz_osc_t*) self;
-    fz_free(_self->frame_buffer);
     fz_free(_self->form);
     return _self;
 }
@@ -72,7 +70,7 @@ const fz_ptr_t fz_osc = (const fz_ptr_t) &_fz_osc;
 
 fz_result_t     
 fz_oscillator_apply(
-                    fz_octx_t *state,
+                    fz_octx_t *ctx,
                     fz_list_t *samples)
 {
     fz_result_t result = FZ_RESULT_SUCCESS;
@@ -80,39 +78,34 @@ fz_oscillator_apply(
     fz_float_t  step_size;
     fz_real_t   frame;
     
-    if (!fz_list_type(samples, fz_amp_t) || state->osc == NULL) {
+    if (!fz_list_type(samples, fz_amp_t) || ctx->osc == NULL) {
         return FZ_RESULT_INVALID_ARG;
-    }
-
-    result = fz_list_clear(state->osc->frame_buffer, samples->size);
-    if (result != FZ_RESULT_SUCCESS) {
-        return result;
     }
     
     // sample rate divided by frequeny gives number of samples per period
-    step_size = 1.f/(state->osc->sample_rate/state->freq);
+    step_size = 1.f/(ctx->osc->sample_rate/ctx->freq);
     
     // fill the frame part of the sample buffer
     for (i = 0; i < samples->size; ++i) {
-        frame = state->frame + state->osc->phase;
+        frame = ctx->frame + ctx->osc->phase;
         while (frame >= 1) {
             frame -= 1;
         }
-        fz_list_val(state->osc->frame_buffer, i, fz_frame_t) = frame;
-        state->frame += step_size;
-        while (state->frame >= 1) {
-            state->frame -= 1;
+        fz_list_val(ctx->framebuf, i, fz_frame_t) = frame;
+        ctx->frame += step_size;
+        while (ctx->frame >= 1) {
+            ctx->frame -= 1;
         }
     }
 
     result = fz_form_apply(
-            state->osc->form, state->osc->frame_buffer, samples);
+            ctx->osc->form, ctx->framebuf, samples);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
     
     for (i = 0; i < samples->size; ++i) {
-        fz_list_val(samples, i, fz_amp_t) *= state->osc->amplitude;
+        fz_list_val(samples, i, fz_amp_t) *= ctx->amp * ctx->osc->amp;
     }
     
     return result;

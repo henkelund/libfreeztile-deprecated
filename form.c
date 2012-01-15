@@ -85,7 +85,7 @@ fz_form_apply(
         for (i = 0; i < frames->size && i < amplitudes->size; ++i) {
             frame = (fz_uint_t)
                     (fz_list_val(frames, i, fz_frame_t) * form->template->size);
-            fz_list_val(amplitudes, i, fz_amp_t) =
+            fz_list_val(amplitudes, i, fz_amp_t) +=
                     fz_list_val(form->template, frame, fz_amp_t);
         }
     }

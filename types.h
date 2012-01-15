@@ -90,16 +90,17 @@ typedef struct {
 typedef struct {
     const fz_ptr_t  _scp;
     fz_form_t      *form;
-    fz_amp_t        amplitude;
+    fz_amp_t        amp;
     fz_real_t       phase;
     fz_float_t      sample_rate;
-    fz_list_t      *frame_buffer; // should be on ctx obj for concurrency
 } fz_osc_t;
 
 typedef struct {
     fz_osc_t   *osc;
     fz_frame_t  frame;
+    fz_list_t  *framebuf;
     fz_real_t   freq;
+    fz_amp_t    amp;
 } fz_octx_t;
 
 typedef struct {

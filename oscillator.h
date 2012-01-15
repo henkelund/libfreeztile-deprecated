@@ -38,7 +38,7 @@
  * @return fz_result_r
  */
 fz_result_t fz_oscillator_apply(
-                                fz_octx_t *state,
+                                fz_octx_t *ctx,
                                 fz_list_t *samples);
 
 const fz_ptr_t fz_osc;
