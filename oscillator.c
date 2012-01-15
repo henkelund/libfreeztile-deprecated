@@ -72,47 +72,47 @@ const fz_ptr_t fz_osc = (const fz_ptr_t) &_fz_osc;
 
 fz_result_t     
 fz_oscillator_apply(
-                    fz_osc_t    *oscillator,
-                    fz_ostate_t *state,
-                    fz_list_t   *samples)
+                    fz_octx_t *state,
+                    fz_list_t *samples)
 {
     fz_result_t result = FZ_RESULT_SUCCESS;
     fz_uint_t   i;
     fz_float_t  step_size;
     fz_real_t   frame;
     
-    if (!fz_list_type(samples, fz_amp_t)) {
+    if (!fz_list_type(samples, fz_amp_t) || state->osc == NULL) {
         return FZ_RESULT_INVALID_ARG;
     }
 
-    result = fz_list_clear(oscillator->frame_buffer, samples->size);
+    result = fz_list_clear(state->osc->frame_buffer, samples->size);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
     
     // sample rate divided by frequeny gives number of samples per period
-    step_size = 1.f/(oscillator->sample_rate/state->frequency);
+    step_size = 1.f/(state->osc->sample_rate/state->freq);
     
     // fill the frame part of the sample buffer
     for (i = 0; i < samples->size; ++i) {
-        frame = state->frame + oscillator->phase;
+        frame = state->frame + state->osc->phase;
         while (frame >= 1) {
             frame -= 1;
         }
-        fz_list_val(oscillator->frame_buffer, i, fz_frame_t) = frame;
+        fz_list_val(state->osc->frame_buffer, i, fz_frame_t) = frame;
         state->frame += step_size;
         while (state->frame >= 1) {
             state->frame -= 1;
         }
     }
 
-    result = fz_form_apply(oscillator->form, oscillator->frame_buffer, samples);
+    result = fz_form_apply(
+            state->osc->form, state->osc->frame_buffer, samples);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
     
     for (i = 0; i < samples->size; ++i) {
-        fz_list_val(samples, i, fz_amp_t) *= oscillator->amplitude;
+        fz_list_val(samples, i, fz_amp_t) *= state->osc->amplitude;
     }
     
     return result;

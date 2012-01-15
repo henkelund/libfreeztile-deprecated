@@ -33,14 +33,13 @@
 
 /**
  *
+ * @param  fz_ostate_t *state
  * @param  fz_list_t   *samples
- * @param  fz_osc_t    *oscillator
  * @return fz_result_r
  */
 fz_result_t fz_oscillator_apply(
-                                fz_osc_t    *oscillator,
-                                fz_ostate_t *state,
-                                fz_list_t   *samples);
+                                fz_octx_t *state,
+                                fz_list_t *samples);
 
 const fz_ptr_t fz_osc;
 

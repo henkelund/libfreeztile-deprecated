@@ -93,15 +93,14 @@ typedef struct {
     fz_amp_t        amplitude;
     fz_real_t       phase;
     fz_float_t      sample_rate;
-    fz_list_t      *frame_buffer;
+    fz_list_t      *frame_buffer; // should be on ctx obj for concurrency
 } fz_osc_t;
 
 typedef struct {
-    fz_osc_t   *oscillator;
+    fz_osc_t   *osc;
     fz_frame_t  frame;
-    fz_real_t   frequency;
-    fz_real_t   targ_freq;
-} fz_ostate_t;
+    fz_real_t   freq;
+} fz_octx_t;
 
 typedef struct {
     fz_amp_t    start;
@@ -135,7 +134,7 @@ typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
 typedef struct {
     const fz_ptr_t  _scp;
     fz_voice_t     *voice;
-    fz_list_t      *ostates;
+    fz_list_t      *octxs;
 } fz_note_t;
 
 /*typedef struct {

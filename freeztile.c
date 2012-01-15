@@ -30,8 +30,8 @@
 #include <math.h>
 #include <string.h>
 #include <errno.h>
-#include <stdio.h>
 #include <assert.h>
+#include <inttypes.h>
 #include "freeztile.h"
 
 #include <stdio.h>
@@ -67,12 +67,12 @@ fz_free(fz_ptr_t self)
     printf("%d objects (-)\n", --_fz_obj_count);
 }
 
-fz_uint_t
+uint32_t
 fz_hash(
         const fz_char_t *data,
         fz_size_t        size)
 {
-    fz_uint_t hash = 5381;
+    uint32_t hash = 5381;
     for (; size > 0; --size) {
         hash = ((hash << 5) + hash) ^ *data++;
     }
