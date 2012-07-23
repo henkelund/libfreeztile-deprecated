@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -47,7 +47,7 @@
  * @return
  */
 fz_uint_t   fz_filter_apply(
-                            fz_filter_t *filter, 
+                            fz_filter_t *filter,
                             fz_list_t   *samples);
 
 const fz_ptr_t fz_filter;

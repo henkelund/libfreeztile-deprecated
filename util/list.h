@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -31,14 +31,13 @@
 
 #include <string.h>
 #include <stdarg.h>
-#include "types.h"
+#include "../types.h"
 
 /**
  * Convenience macro for list creation
- * 
- * @param  fz_list_t* list
- * @param  type       type of list
- * @return 
+ *
+ * @param  type     type of list
+ * @return fz_ptr_t
  */
 #define fz_list_new(type) \
             fz_new(fz_list, sizeof(type), #type)
@@ -67,7 +66,7 @@
 
 /**
  * Convenience macro for list type checking
- * 
+ *
  * @param  fz_list_t* list
  * @param  type       type
  * @return bool       True if type matches
@@ -76,7 +75,7 @@
             (list->type_size == sizeof(type) && strcmp(list->type_name, #type) == 0)
 
 /**
- * 
+ *
  * @param  fz_list_t *list
  * @param  fz_uint_t min_size
  * @return fz_result
@@ -86,7 +85,7 @@ fz_result_t fz_list_grow(
                          fz_uint_t  min_size);
 
 /**
- * 
+ *
  * @param  fz_list_t *list
  * @param  fz_uint_t size
  * @return fz_result
@@ -96,7 +95,7 @@ fz_result_t fz_list_clear(
                           fz_uint_t  size);
 
 /**
- * 
+ *
  * @param  fz_list_t   *list
  * @param  fz_ptr_t     item
  * @param  fz_uint_t    pos
@@ -108,7 +107,7 @@ fz_result_t fz_list_insert(
                            fz_uint_t  pos);
 
 /**
- * 
+ *
  * @param  fz_list_t   *list
  * @param  fz_ptr_t     item
  * @return fz_result_t
@@ -118,7 +117,7 @@ fz_result_t fz_list_append(
                            fz_ptr_t   item);
 
 /**
- * 
+ *
  * @param  fz_list_t    *list
  * @param  fz_uint_t    pos
  * @return fz_result_t

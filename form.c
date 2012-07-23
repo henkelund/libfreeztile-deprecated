@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -31,7 +31,7 @@
 #include <string.h>
 #include "form.h"
 #include "freeztile.h"
-#include "list.h"
+#include "util/list.h"
 
 // ### PRIVATE ###
 
@@ -76,11 +76,11 @@ fz_form_apply(
 {
     fz_uint_t i;
     fz_uint_t frame;
-    
+
     if (!fz_list_type(frames, fz_frame_t) || !fz_list_type(amplitudes, fz_amp_t)) {
         return FZ_RESULT_INVALID_ARG;
     }
-    
+
     if (form->template->size > 0) {
         for (i = 0; i < frames->size && i < amplitudes->size; ++i) {
             frame = (fz_uint_t)
@@ -92,7 +92,7 @@ fz_form_apply(
     return FZ_RESULT_SUCCESS;
 }
 
-fz_result_t 
+fz_result_t
 fz_curve_render(
                 fz_curve_t  *curve,
                 fz_form_t   *form)
@@ -110,13 +110,13 @@ fz_curve_render(
                c1y,
                c2y,
                c3y;
-    
+
     // don't bother to render if curve hasn't changed (force option?)
     hash = fz_hash((fz_char_t*) curve, sizeof (fz_curve_t));
     if (hash == form->version) {
         return FZ_RESULT_SUCCESS;
     }
-    
+
     // assign vars
     c0y = curve->start,
     c1y = (3*curve->a.y)-(3*curve->start),
@@ -132,11 +132,11 @@ fz_curve_render(
             ti = 1 - t;
             t2 = t*t;
             ti2 = ti*ti;
-            
+
             f = (3*ti2*t*curve->a.x) +
                 (3*ti*t2*curve->b.x) +
                 (t2*t) - pos;
-            
+
             d = (3*curve->a.x*(1 - 4*t + 3*t2)) +
                 (3*curve->b.x*(2*t - 3*t2)) +
                 (3*t2);
@@ -145,7 +145,7 @@ fz_curve_render(
         }
         fz_list_val(form->template, i, fz_amp_t) = c0y+t*(c1y+t*(c2y+t*c3y));
     }
-    
+
     // update form version with curve hash
     form->version = hash;
     return FZ_RESULT_SUCCESS;
@@ -157,7 +157,7 @@ fz_multicurve_normalize_shares(
 {
     fz_float_t total_share;
     fz_uint_t  i;
-    
+
     if (multicurve == NULL || !fz_list_type(multicurve, fz_mccurve_t)) {
         return FZ_RESULT_INVALID_ARG;
     }
@@ -169,7 +169,7 @@ fz_multicurve_normalize_shares(
     for (i = 0; i < multicurve->size; ++i) {
         fz_list_ref(multicurve, i, fz_mccurve_t)->share /= total_share;
     }
-    
+
     return FZ_RESULT_SUCCESS;
 }
 
@@ -202,7 +202,7 @@ fz_multicurve_render(
                 != FZ_RESULT_SUCCESS) {
             return result;
         }
-        
+
         size = form->template->size*mccurve->share;
         for (j = 0; j < size; ++j) {
             // maybe find average instead?

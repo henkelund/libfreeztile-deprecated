@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -32,7 +32,7 @@
 #include "types.h"
 
 /**
- * 
+ *
  * @param  note
  * @param  samples
  * @return fz_uint_t

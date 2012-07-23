@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -31,7 +31,7 @@
 #include <string.h>
 #include <assert.h>
 #include "list.h"
-#include "freeztile.h"
+#include "../freeztile.h"
 
 // ### PRIVATE ###
 
@@ -115,7 +115,7 @@ fz_list_grow(
     fz_uint_t malloc_size;
     fz_ptr_t  items;
     if (min_size > list->avail_size) {
-        malloc_size = min_size < 10 ? 10 : 
+        malloc_size = min_size < 10 ? 10 :
             (fz_uint_t) pow(2, ceil(log(min_size)/log(2)));
         items = malloc(malloc_size*list->type_size);
         if (items == NULL) {
@@ -133,13 +133,13 @@ fz_list_grow(
 
 fz_result_t
 fz_list_insert(
-               fz_list_t *list, 
+               fz_list_t *list,
                fz_ptr_t   item,
                fz_uint_t  pos)
 {
     fz_uint_t   size;
     fz_result_t result;
-    
+
     if (pos < 0 || pos > list->size) {
         return FZ_RESULT_IOOB_ERROR;
     }
@@ -158,7 +158,7 @@ fz_list_insert(
 
     memcpy(list->items + (pos*list->type_size), item, list->type_size);
     list->size = size;
-    
+
     return FZ_RESULT_SUCCESS;
 }
 

@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -82,16 +82,24 @@ fz_hash(
 const char*
 fz_result_string(fz_result_t result)
 {
-    if (result == FZ_RESULT_SUCCESS) {
-        return "success";
-    } else if (result == FZ_RESULT_NOT_IMPLEMENTED) {
-        return "not implemented";
-    } else if (result == FZ_RESULT_MALLOC_ERROR) {
-        return "memory allocation error";
-    } else if (result == FZ_RESULT_IOOB_ERROR) {
-        return "index out-of-bounds error";
-    } else if (result == FZ_RESULT_INVALID_ARG) {
-        return "invalid argument";
+    switch (result) {
+        case FZ_RESULT_SUCCESS:
+            return "success";
+            break;
+        case FZ_RESULT_NOT_IMPLEMENTED:
+            return "not implemented";
+            break;
+        case FZ_RESULT_MALLOC_ERROR:
+            return "memory allocation error";
+            break;
+        case FZ_RESULT_IOOB_ERROR:
+            return "index out-of-bounds error";
+            break;
+        case FZ_RESULT_INVALID_ARG:
+            return "invalid argument";
+            break;
+        default:
+            return "unknown result";
+            break;
     }
-    return "unknown result";
 }

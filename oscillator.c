@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -30,7 +30,7 @@
 #include "oscillator.h"
 #include "freeztile.h"
 #include "form.h"
-#include "list.h"
+#include "util/list.h"
 
 // ### PRIVATE ###
 
@@ -68,7 +68,7 @@ static const fz_object_t _fz_osc = {
 
 const fz_ptr_t fz_osc = (const fz_ptr_t) &_fz_osc;
 
-fz_result_t     
+fz_result_t
 fz_oscillator_apply(
                     fz_octx_t *ctx,
                     fz_list_t *samples)
@@ -77,14 +77,14 @@ fz_oscillator_apply(
     fz_uint_t   i;
     fz_float_t  step_size;
     fz_real_t   frame;
-    
+
     if (!fz_list_type(samples, fz_amp_t) || ctx->osc == NULL) {
         return FZ_RESULT_INVALID_ARG;
     }
-    
+
     // sample rate divided by frequeny gives number of samples per period
     step_size = 1.f/(ctx->osc->sample_rate/ctx->freq);
-    
+
     // fill the frame part of the sample buffer
     for (i = 0; i < samples->size; ++i) {
         frame = ctx->frame + ctx->osc->phase;
@@ -103,10 +103,10 @@ fz_oscillator_apply(
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
-    
+
     for (i = 0; i < samples->size; ++i) {
         fz_list_val(samples, i, fz_amp_t) *= ctx->amp * ctx->osc->amp;
     }
-    
+
     return result;
 }

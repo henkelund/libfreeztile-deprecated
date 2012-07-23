@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -58,28 +58,28 @@ fz_result_t fz_form_apply(
                           fz_list_t   *amplitudes);
 
 /**
- * 
+ *
  * @param  fz_curve_t  *curve
  * @param  fz_form_t   *form
- * @return fz_result_t 
+ * @return fz_result_t
  */
 fz_result_t fz_curve_render(
                             fz_curve_t  *curve,
                             fz_form_t   *form);
 
 /**
- * 
+ *
  * @param fz_list_t *multicurve
- * @return 
+ * @return
  */
 fz_result_t fz_multicurve_normalize_shares(
                                            fz_list_t  *multicurve);
 
 /**
- * 
+ *
  * @param  fz_list_t   *curve
  * @param  fz_form_t   *form
- * @return fz_result_t 
+ * @return fz_result_t
  */
 fz_result_t fz_multicurve_render(
                                  fz_list_t  *multicurve,

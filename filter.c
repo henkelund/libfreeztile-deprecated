@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -30,7 +30,7 @@
 #include <math.h>
 #include "filter.h"
 #include "freeztile.h"
-#include "list.h"
+#include "util/list.h"
 #include "form.h"
 
 // ### PRIVATE ###
@@ -44,7 +44,7 @@ _fz_filter_construct(
     fz_filter_t *_self = (fz_filter_t*) self;
     _self->filter      = NULL;
     _self->options     = FZ_FILTER_OPT_NONE;
-    // env_buffer won't be here for long so 
+    // env_buffer won't be here for long so
     // no need to write filter destructor right now
     _self->env_buffer  = fz_list_new(fz_real_t);
     return self;
@@ -91,7 +91,7 @@ _fz_lowpass_construct(
                      const fz_ptr_t  self,
                      va_list        *args)
 {
-    fz_lowpass_t *_self = 
+    fz_lowpass_t *_self =
             ((const fz_object_t*) fz_filter)->construct(self, args);
     ((fz_filter_t*) _self)->filter = _fz_lowpass_filter;
     _self->rc   = 0;
@@ -123,7 +123,7 @@ const fz_ptr_t fz_lowpass = (const fz_ptr_t) &_fz_lowpass;
 
 fz_uint_t
 fz_filter_apply(
-                fz_filter_t *filter, 
+                fz_filter_t *filter,
                 fz_list_t   *samples)
 {
     fz_uint_t i;

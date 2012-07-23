@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include "note.h"
 #include "freeztile.h"
-#include "list.h"
+#include "util/list.h"
 #include "oscillator.h"
 
 // ### PRIVATE ###
@@ -74,10 +74,10 @@ _fz_note_sync(fz_note_t *note)
     for (i = 0; i < note->voice->size; ++i) {
         if (i == note->octxs->size) {
             fz_list_append(note->octxs, &_fz_default_octx);
-            fz_list_ref(note->octxs, i, fz_octx_t)->framebuf = 
+            fz_list_ref(note->octxs, i, fz_octx_t)->framebuf =
                     fz_list_new(fz_frame_t);
         }
-        fz_list_ref(note->octxs, i, fz_octx_t)->osc = 
+        fz_list_ref(note->octxs, i, fz_octx_t)->osc =
                 fz_list_val(note->voice, i, fz_osc_t*);
     }
     return FZ_RESULT_SUCCESS;

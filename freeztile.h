@@ -1,7 +1,7 @@
 /**
  * libfreeztile
  *
- * Copyright (C) 2011 Henrik Hedelund (henke.hedelund@gmail.com)
+ * Copyright (C) 2012 Henrik Hedelund (henke.hedelund@gmail.com)
  *
  * This file is part of libfreeztile.
  *
@@ -35,7 +35,7 @@
 
 /**
  * FreeZtile return values
- * 
+ *
  */
 #define FZ_RESULT_SUCCESS          0
 #define FZ_RESULT_NOT_IMPLEMENTED -1
@@ -44,7 +44,7 @@
 #define FZ_RESULT_INVALID_ARG     -4
 
 /**
- * 
+ *
  * @param  fz_ptr_t type
  * @param  ...
  * @return fz_ptr_t New object of given type
@@ -52,24 +52,24 @@
 fz_ptr_t    fz_new(const fz_ptr_t type, ...);
 
 /**
- * 
+ *
  * @param  fz_ptr_t self
  */
 void        fz_free(fz_ptr_t self);
 
 /**
  * Returns a DJBX33X hash integer of the given data
- * 
+ *
  * @param  data
  * @param  size
- * @return 
+ * @return
  */
 uint32_t    fz_hash(
                     const fz_char_t *data,
                     fz_size_t        size);
 
 /**
- * 
+ *
  * @param  fz_result_t result
  * @return const char*
  */
