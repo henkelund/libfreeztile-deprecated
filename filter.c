@@ -35,6 +35,7 @@
 
 // ### PRIVATE ###
 
+static
 fz_ptr_t
 _fz_filter_construct(
                     const fz_ptr_t  self,
@@ -50,6 +51,7 @@ _fz_filter_construct(
     return self;
 }
 
+static
 fz_uint_t
 _fz_lowpass_filter(
                   fz_ptr_t  filter,
@@ -86,6 +88,7 @@ _fz_lowpass_filter(
     return samples->size;
 }
 
+static
 fz_ptr_t
 _fz_lowpass_construct(
                      const fz_ptr_t  self,

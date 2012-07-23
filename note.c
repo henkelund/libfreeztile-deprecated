@@ -34,6 +34,7 @@
 
 // ### PRIVATE ###
 
+static
 fz_ptr_t
 _fz_note_construct(
                    const fz_ptr_t  self,
@@ -46,6 +47,7 @@ _fz_note_construct(
     return _self;
 }
 
+static
 fz_ptr_t
 _fz_note_destruct(fz_ptr_t self)
 {
@@ -67,6 +69,7 @@ static fz_octx_t _fz_default_octx = {
     .amp      = 1
 };
 
+static
 fz_result_t
 _fz_note_sync(fz_note_t *note)
 {

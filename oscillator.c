@@ -34,6 +34,7 @@
 
 // ### PRIVATE ###
 
+static
 fz_ptr_t
 _fz_osc_construct(
                   const fz_ptr_t  self,
@@ -48,6 +49,7 @@ _fz_osc_construct(
     return _self;
 }
 
+static
 fz_ptr_t
 _fz_osc_destruct(fz_ptr_t self)
 {

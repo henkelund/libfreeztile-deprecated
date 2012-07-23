@@ -35,6 +35,7 @@
 
 // ### PRIVATE ###
 
+static
 fz_ptr_t
 _fz_form_construct(
                   const fz_ptr_t  self,
@@ -48,6 +49,7 @@ _fz_form_construct(
     return _self;
 }
 
+static
 fz_ptr_t
 _fz_form_destruct(fz_ptr_t self)
 {
