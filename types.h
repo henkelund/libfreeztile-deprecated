@@ -29,7 +29,16 @@
 #ifndef _FZ_TYPES_H_
 #define _FZ_TYPES_H_
 
+#include <stdlib.h>
 #include <stdarg.h>
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
 
 typedef float             fz_float_t;
 
@@ -54,6 +63,8 @@ typedef fz_ulong_t        fz_flags_t;
 typedef fz_real_t         fz_amp_t;
 
 typedef fz_real_t         fz_frame_t;
+
+typedef short             fz_bool_t;
 
 // fz base class
 typedef struct {
@@ -137,6 +148,10 @@ typedef struct {
     fz_voice_t     *voice;
     fz_list_t      *octxs;
 } fz_note_t;
+
+typedef struct {
+    const fz_ptr_t _scp;
+} fz_synthesizer_t;
 
 /*typedef struct {
     fz_form_t *adsr[4];
