@@ -40,9 +40,13 @@ static fz_int_t _fz_obj_count = 0;
 fz_ptr_t
 fz_new(const fz_ptr_t type, ...)
 {
-    const fz_object_t* _type = (const fz_object_t*) type;
-    fz_ptr_t self = (fz_ptr_t) malloc(_type->size);
+    const fz_object_t *_type  = (const fz_object_t*) type;
+    fz_int_t          *refcnt = (fz_int_t*) malloc(sizeof (fz_int_t) + _type->size);
+    fz_ptr_t           self   = (fz_ptr_t) (refcnt + 1);
+
     assert(self);
+    *refcnt = 1;
+
     // put a type ref at top of self
     *((const fz_object_t**) self) = type;
     if (_type->construct) {
@@ -55,16 +59,27 @@ fz_new(const fz_ptr_t type, ...)
     return self;
 }
 
+fz_ptr_t
+fz_retain(fz_ptr_t obj)
+{
+    ++(*(((fz_int_t*) obj) - 1));
+    return obj;
+}
+
 void
 fz_free(fz_ptr_t self)
 {
-    // type pointer is at top of object, @see fz_new
-    const fz_object_t **type = self;
-    if (self && *type && (*type)->destruct) {
-        self = (*type)->destruct(self);
+    fz_int_t *refcnt = ((fz_int_t*) self) - 1;
+    printf("freeing obj w/ refcnt = %d\n", *refcnt);
+    if (--(*refcnt) <= 0) {
+        // type pointer is at top of object, @see fz_new
+        const fz_object_t **type = self;
+        if (self && *type && (*type)->destruct) {
+            self = (*type)->destruct(self);
+        }
+        free(refcnt);
+        printf("%d objects (-)\n", --_fz_obj_count);
     }
-    free(self);
-    printf("%d objects (-)\n", --_fz_obj_count);
 }
 
 uint32_t
@@ -79,7 +94,7 @@ fz_hash(
     return hash;
 }
 
-const char*
+const fz_char_t*
 fz_result_string(fz_result_t result)
 {
     switch (result) {

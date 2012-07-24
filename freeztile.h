@@ -52,6 +52,14 @@
 fz_ptr_t    fz_new(const fz_ptr_t type, ...);
 
 /**
+ * Increase reference count of obj
+ *
+ * @param  fz_ptr_t obj
+ * @return fz_ptr_t obj
+ */
+fz_ptr_t    fz_retain(fz_ptr_t obj);
+
+/**
  *
  * @param  fz_ptr_t self
  */
