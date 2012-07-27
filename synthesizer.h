@@ -26,18 +26,23 @@
  * @link freeztile.org
  */
 
-#ifndef _FZ_PLAYBACK_ALSA_H_
-#define _FZ_PLAYBACK_ALSA_H_
+#ifndef _FZ_SYNTHESIZER_H_
+#define _FZ_SYNTHESIZER_H_
 
-#include <alsa/asoundlib.h>
-#include "adapter.h"
+#include "types.h"
+#include "util/list.h"
 
 typedef struct {
-    const fz_playback_adapter_t  _super;
-    snd_pcm_t                   *playback_handle;
-    fz_size_t                    buffer_size;
-} fz_playback_alsa_t;
+    const fz_ptr_t             _scp;
+    fz_list_t/*<fz_amp_t>*/   *ob;
+    fz_list_t/*<fz_note_t*>*/ *note_pool;
+} fz_synthesizer_t;
 
-const fz_ptr_t fz_playback_alsa;
+fz_list_t/*<fz_amp_t>*/*
+fz_synthesizer_output(
+                      fz_synthesizer_t *synth,
+                      fz_uint_t         num_frames);
 
-#endif // _FZ_PLAYBACK_ALSA_H_
+const fz_ptr_t fz_synthesizer;
+
+#endif // _FZ_SYNTHESIZER_H_

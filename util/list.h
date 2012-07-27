@@ -30,8 +30,20 @@
 #define _FZ_LIST_H_
 
 #include <string.h>
-#include <stdarg.h>
 #include "../types.h"
+
+#define FZ_LIST_FLAG_NONE    0
+#define FZ_LIST_FLAG_RETAIN (1 << 0)
+
+/**
+ * Convenience macro for list creation
+ *
+ * @param  type       type of list
+ * @param  fz_flags_t options
+ * @return fz_ptr_t
+ */
+#define fz_list_new_flags(type, flags) \
+            fz_new(fz_list, sizeof (type), #type, flags)
 
 /**
  * Convenience macro for list creation
@@ -40,7 +52,7 @@
  * @return fz_ptr_t
  */
 #define fz_list_new(type) \
-            fz_new(fz_list, sizeof(type), #type)
+            fz_list_new_flags(type, FZ_LIST_FLAG_NONE)
 
 /**
  * Convenience macro for list item retrieval
@@ -73,6 +85,35 @@
  */
 #define fz_list_type(list, type) \
             (list->type_size == sizeof(type) && strcmp(list->type_name, #type) == 0)
+
+/**
+ * Helper macro for giving item ownership to retaining object type lists
+ *
+ * @param  list
+ * @param  item
+ * @param  pos
+ * @param  capture variable name
+ * @param  type
+ * @return
+ */
+#define fz_list_insert_release(list, item, pos, capture, type) \
+            type capture = item; fz_uint_t capture ## _pos = pos; \
+            capture = (fz_list_insert(list, &capture, pos) == FZ_RESULT_SUCCESS ? \
+                (fz_free(capture), fz_list_val(list, capture ## _pos, type)) : NULL)
+
+/**
+ * Helper macro for giving item ownership to retaining object type lists
+ *
+ * @param  list
+ * @param  item
+ * @param  capture variable name
+ * @param  type
+ * @return
+ */
+#define fz_list_append_release(list, item, capture, type) \
+            type capture = item; \
+            capture = (fz_list_insert(list, &capture, list->size) == FZ_RESULT_SUCCESS ? \
+                (fz_free(capture), fz_list_val(list, list->size - 1, type)) : NULL)
 
 /**
  *

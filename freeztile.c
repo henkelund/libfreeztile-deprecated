@@ -55,7 +55,7 @@ fz_new(const fz_ptr_t type, ...)
         self = _type->construct(self, &ap);
         va_end(ap);
     }
-    printf("%d objects (+)\n", ++_fz_obj_count);
+    ++_fz_obj_count;
     return self;
 }
 
@@ -70,7 +70,7 @@ void
 fz_free(fz_ptr_t self)
 {
     fz_int_t *refcnt = ((fz_int_t*) self) - 1;
-    printf("freeing obj w/ refcnt = %d\n", *refcnt);
+
     if (--(*refcnt) <= 0) {
         // type pointer is at top of object, @see fz_new
         const fz_object_t **type = self;

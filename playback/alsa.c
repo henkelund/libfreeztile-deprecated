@@ -36,18 +36,23 @@
 
 static
 fz_int_t
-_fz_playback_alsa_play(fz_ptr_t self)
+_fz_playback_alsa_play(fz_playback_adapter_t *self)
 {
     fz_playback_alsa_t *_self      = (fz_playback_alsa_t*) self ;
-//  fz_float_t          max_amp    = (fz_float_t) SHRT_MAX      ;
-    fz_uint_t           i          = 0                          ;
+    fz_synthesizer_t   *synth      = self->synthesizer          ;
+    fz_list_t          *output                                  ;
     fz_int_t            err        = 0                          ;
     snd_pcm_sframes_t   num_frames                              ;
+
+    if (!self || !synth) {
+        return 0;
+    }
 
     if ((err = snd_pcm_wait(_self->playback_handle, 1000)) < 0) {
         fprintf(stderr, "poll failed (%s)\n", strerror(errno));
         return err;
     }
+
     if ((num_frames = snd_pcm_avail_update(_self->playback_handle)) < 0) {
         if (num_frames == -EPIPE) {
             fprintf(stderr, "an xrun occured\n");
@@ -60,15 +65,19 @@ _fz_playback_alsa_play(fz_ptr_t self)
 
     num_frames = num_frames > _self->buffer_size ? _self->buffer_size : num_frames;
 
-    for (; i < num_frames; ++i) {
-        //TODO: fetch real sounds from _self->_super->synthesizer
-        fz_list_val(_self->buffer, i, short) = (short) i*10;
+    output = fz_retain(fz_synthesizer_output(synth, num_frames));
+
+    if (output->size != num_frames) {
+        fz_free(output);
+        return 0;
     }
 
     if ((err = snd_pcm_writei(
-            _self->playback_handle, _self->buffer->items, num_frames)) < 0) {
+            _self->playback_handle, output->items, num_frames)) < 0) {
         fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
     }
+
+    fz_free(output);
 
     return err;
 }
@@ -97,13 +106,13 @@ _fz_playback_alsa_init_hw_params(fz_playback_alsa_t *self)
     }
 
     if ((err = snd_pcm_hw_params_set_format(
-            self->playback_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
+            self->playback_handle, hw_params, SND_PCM_FORMAT_FLOAT_LE)) < 0) {
         snd_pcm_hw_params_free(hw_params);
         return err;
     }
 
-    if ((err = snd_pcm_hw_params_set_rate_near(
-            self->playback_handle, hw_params, &rate, 0)) < 0) {
+    if ((err = snd_pcm_hw_params_set_rate(
+            self->playback_handle, hw_params, rate, 0)) < 0) {
         snd_pcm_hw_params_free(hw_params);
         return err;
     }
@@ -189,8 +198,6 @@ _fz_playback_alsa_construct(
     }
 
     _self->buffer_size = va_arg(*args, fz_size_t);
-    _self->buffer      = fz_list_new(short);
-    fz_list_grow(_self->buffer, _self->buffer_size);
 
     return _self;
 }
@@ -202,7 +209,6 @@ _fz_playback_alsa_destruct(fz_ptr_t self)
     fz_playback_alsa_t *_self =
             ((const fz_object_t*) fz_playback_adapter)->destruct(self);
     snd_pcm_close(_self->playback_handle);
-    fz_free(_self->buffer);
     return _self;
 }
 

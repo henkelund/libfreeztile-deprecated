@@ -38,9 +38,14 @@ _fz_playback_adapter_construct(
                                 va_list        *args)
 {
     fz_playback_adapter_t *_self = (fz_playback_adapter_t*) self;
-    _self->synthesizer           = va_arg(*args, fz_synthesizer_t*);
     _self->stopped               = TRUE;
     _self->_play_callback        = NULL;
+    _self->synthesizer           = va_arg(*args, fz_synthesizer_t*);
+
+    if (_self->synthesizer != NULL) {
+        fz_retain(_self->synthesizer);
+    }
+
     return _self;
 }
 
@@ -50,6 +55,11 @@ _fz_playback_adapter_destruct(const fz_ptr_t  self)
 {
     fz_playback_adapter_t *_self = (fz_playback_adapter_t*) self;
     fz_playback_adapter_stop(_self);
+
+    if (_self->synthesizer != NULL) {
+        fz_free(_self->synthesizer);
+    }
+
     return _self;
 }
 

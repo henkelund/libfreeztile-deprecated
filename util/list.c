@@ -44,6 +44,8 @@ _fz_list_construct(
     fz_list_t       *_self     = (fz_list_t*) self;
     fz_uint_t        type_size = va_arg(*args, fz_uint_t);
     const fz_char_t *type_name = va_arg(*args, fz_char_t*);
+    fz_flags_t       flags     = va_arg(*args, fz_flags_t);
+
     _self->type_name =
             (fz_char_t*) malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
     assert(_self->type_name);
@@ -52,6 +54,7 @@ _fz_list_construct(
     _self->type_size  = type_size;
     _self->size       = 0;
     _self->avail_size = 0;
+    _self->flags      = flags;
     _self->remove     = NULL;
     _self->compare    = NULL;
     return _self;
@@ -66,6 +69,10 @@ _fz_list_destruct(fz_ptr_t self)
     if (_self->remove != NULL) {
         for (i = 0; i < _self->size; ++i) {
             _self->remove(_self->items + (i*_self->type_size));
+        }
+    } else if (_self->flags & FZ_LIST_FLAG_RETAIN) {
+        for (i = 0; i < _self->size; ++i) {
+            fz_free(fz_list_val(_self, i, fz_ptr_t));
         }
     }
     // free item storage
@@ -102,6 +109,10 @@ fz_list_clear(
     if (list->remove != NULL) {
         for (i = 0; i < list->size; ++i) {
             list->remove(list->items + (i*list->type_size));
+        }
+    } else if (list->flags & FZ_LIST_FLAG_RETAIN) {
+        for (i = 0; i < list->size; ++i) {
+            fz_free(fz_list_val(list, i, fz_ptr_t));
         }
     }
     list->size = size;
@@ -161,6 +172,10 @@ fz_list_insert(
     memcpy(list->items + (pos*list->type_size), item, list->type_size);
     list->size = size;
 
+    if (list->flags & FZ_LIST_FLAG_RETAIN) {
+        fz_retain(fz_list_val(list, pos, fz_ptr_t));
+    }
+
     return FZ_RESULT_SUCCESS;
 }
 
@@ -182,6 +197,8 @@ fz_list_remove(
     }
     if (list->remove != NULL) {
         list->remove(list->items + (pos*list->type_size));
+    } else if (list->flags & FZ_LIST_FLAG_RETAIN) {
+        fz_free(fz_list_val(list, pos, fz_ptr_t));
     }
     --list->size;
     if (pos != list->size) {

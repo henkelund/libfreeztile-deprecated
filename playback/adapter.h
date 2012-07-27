@@ -31,14 +31,15 @@
 
 #include <pthread.h>
 #include "../types.h"
+#include "../synthesizer.h"
 
-typedef struct {
+typedef struct fz_playback_adapter_s {
     const fz_ptr_t     _class;
     fz_synthesizer_t  *synthesizer;
     pthread_t          thread;
     pthread_attr_t     thread_attr;
     fz_bool_t          stopped;
-    fz_int_t         (*_play_callback)(fz_ptr_t self);
+    fz_int_t         (*_play_callback)(struct fz_playback_adapter_s *self);
 } fz_playback_adapter_t;
 
 /**

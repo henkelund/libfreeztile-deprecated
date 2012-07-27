@@ -64,7 +64,7 @@ typedef fz_real_t         fz_amp_t;
 
 typedef fz_real_t         fz_frame_t;
 
-typedef short             fz_bool_t;
+typedef char              fz_bool_t;
 
 // fz base class
 typedef struct {
@@ -87,6 +87,7 @@ typedef struct {
     fz_char_t       *type_name;
     fz_uint_t        size;
     fz_uint_t        avail_size;
+    fz_flags_t       flags;
     fz_result_t    (*remove) (fz_ptr_t item);
     fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
 } fz_list_t;
@@ -148,10 +149,6 @@ typedef struct {
     fz_voice_t     *voice;
     fz_list_t      *octxs;
 } fz_note_t;
-
-typedef struct {
-    const fz_ptr_t _scp;
-} fz_synthesizer_t;
 
 /*typedef struct {
     fz_form_t *adsr[4];

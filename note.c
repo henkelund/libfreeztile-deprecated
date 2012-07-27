@@ -57,7 +57,10 @@ _fz_note_destruct(fz_ptr_t self)
         fz_free(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
     }
     fz_free(_self->octxs);
-    // _self->voice isn't owned by the note
+
+    if (_self->voice != NULL) {
+        fz_free(_self->voice);
+    }
     return _self;
 }
 
