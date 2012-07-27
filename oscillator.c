@@ -45,7 +45,6 @@ _fz_osc_construct(
     _self->form         = fz_new(fz_form);
     _self->amp          = 1;
     _self->phase        = 0;
-    _self->sample_rate  = 44100;
     return _self;
 }
 
@@ -79,15 +78,16 @@ fz_oscillator_apply(
     fz_uint_t   i;
     fz_float_t  step_size;
     fz_real_t   frame;
+    fz_amp_t    amp;
 
     if (!fz_list_type(samples, fz_amp_t) || ctx->osc == NULL) {
         return FZ_RESULT_INVALID_ARG;
     }
 
     // sample rate divided by frequeny gives number of samples per period
-    step_size = 1.f/(ctx->osc->sample_rate/ctx->freq);
+    step_size = 1.f/(ctx->sample_rate/ctx->freq);
 
-    // fill the frame part of the sample buffer
+    // fill the frame progress buffer
     for (i = 0; i < samples->size; ++i) {
         frame = ctx->frame + ctx->osc->phase;
         while (frame >= 1) {
@@ -100,14 +100,14 @@ fz_oscillator_apply(
         }
     }
 
-    result = fz_form_apply(
-            ctx->osc->form, ctx->framebuf, samples);
+    result = fz_form_apply(ctx->osc->form, ctx->framebuf, samples);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
 
+    amp = ctx->amp * ctx->osc->amp;
     for (i = 0; i < samples->size; ++i) {
-        fz_list_val(samples, i, fz_amp_t) *= ctx->amp * ctx->osc->amp;
+        fz_list_val(samples, i, fz_amp_t) *= amp;
     }
 
     return result;

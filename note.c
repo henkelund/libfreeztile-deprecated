@@ -104,7 +104,8 @@ const fz_ptr_t fz_note = (const fz_ptr_t) &_fz_note;
 fz_result_t
 fz_note_apply(
               fz_note_t *note,
-              fz_list_t *samples)
+              fz_list_t *output,
+              fz_uint_t  sample_rate)
 {
     fz_octx_t   *ctx;
     fz_uint_t    i;
@@ -113,11 +114,11 @@ fz_note_apply(
         return result;
     }
     for (i = 0; i < note->octxs->size; ++i) {
-        ctx = fz_list_ref(note->octxs, i, fz_octx_t);
-        ctx->freq = 440;
-        //ctx->amp = note->amp*(1.0/note->voice->size);
-        fz_list_clear(ctx->framebuf, samples->size);
-        fz_oscillator_apply(ctx, samples);
+        ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
+        ctx->sample_rate = sample_rate;
+        ctx->freq        = 440;
+        fz_list_clear(ctx->framebuf, output->size);
+        fz_oscillator_apply(ctx, output);
     }
     return FZ_RESULT_SUCCESS;
 }

@@ -44,6 +44,7 @@ _fz_synthesizer_construct(
     fz_synthesizer_t *_self = (fz_synthesizer_t*) self;
     _self->ob               = fz_list_new(fz_amp_t);
     _self->note_pool        = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
+    _self->sample_rate      = FZ_SAMPLE_RATE;
 
     /*/// Create example note
     fz_note_t *note = fz_new(fz_note);
@@ -138,6 +139,11 @@ fz_synthesizer_output(
                       fz_uint_t         num_frames)
 {
     fz_list_clear(synth->ob, num_frames);
-    fz_note_apply(fz_list_val(synth->note_pool, 0, fz_note_t*), synth->ob);
+
+    fz_note_apply(
+            fz_list_val(synth->note_pool, 0, fz_note_t*),
+            synth->ob,
+            synth->sample_rate);
+
     return synth->ob;
 }

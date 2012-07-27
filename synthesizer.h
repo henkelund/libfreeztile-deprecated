@@ -32,10 +32,15 @@
 #include "types.h"
 #include "util/list.h"
 
+#ifndef FZ_SAMPLE_RATE
+#define FZ_SAMPLE_RATE 44100
+#endif
+
 typedef struct {
     const fz_ptr_t             _scp;
     fz_list_t/*<fz_amp_t>*/   *ob;
     fz_list_t/*<fz_note_t*>*/ *note_pool;
+    fz_uint_t                  sample_rate;
 } fz_synthesizer_t;
 
 fz_list_t/*<fz_amp_t>*/*

@@ -104,7 +104,6 @@ typedef struct {
     fz_form_t      *form;
     fz_amp_t        amp;
     fz_real_t       phase;
-    fz_float_t      sample_rate;
 } fz_osc_t;
 
 typedef struct {
@@ -113,6 +112,7 @@ typedef struct {
     fz_list_t  *framebuf;
     fz_real_t   freq;
     fz_amp_t    amp;
+    fz_uint_t   sample_rate;
 } fz_octx_t;
 
 typedef struct {

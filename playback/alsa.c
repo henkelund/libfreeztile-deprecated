@@ -86,9 +86,9 @@ static
 fz_int_t
 _fz_playback_alsa_init_hw_params(fz_playback_alsa_t *self)
 {
-    fz_int_t             err       = 0     ;
-    fz_uint_t            rate      = 44100 ; // get from self->_super->synthesizer?
-    snd_pcm_hw_params_t *hw_params         ;
+    fz_int_t             err       = 0                                     ;
+    fz_uint_t            rate      = self->_super.synthesizer->sample_rate ;
+    snd_pcm_hw_params_t *hw_params                                         ;
 
     if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0) {
         return err;
