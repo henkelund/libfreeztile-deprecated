@@ -41,6 +41,7 @@ typedef struct {
     fz_list_t/*<fz_amp_t>*/   *ob;
     fz_list_t/*<fz_note_t*>*/ *note_pool;
     fz_uint_t                  sample_rate;
+    fz_voice_t                *voice;
 } fz_synthesizer_t;
 
 fz_list_t/*<fz_amp_t>*/*

@@ -31,8 +31,11 @@
 #include "note.h"
 #include "oscillator.h"
 #include "form.h"
+#include <math.h>
 
 // ### PRIVATE ###
+
+#define HALFNOTE_DIST 1.059463094 // pow(2, 1.0/12)
 
 static
 fz_ptr_t
@@ -45,23 +48,10 @@ _fz_synthesizer_construct(
     _self->ob               = fz_list_new(fz_amp_t);
     _self->note_pool        = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
     _self->sample_rate      = FZ_SAMPLE_RATE;
-
-    /*/// Create example note
-    fz_note_t *note = fz_new(fz_note);
-    // Use note->voice = fz_retain(voice) to avoid note taking voice ownership
-    note->voice = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
-    fz_list_append(_self->note_pool, &note);
-    // _self->note_pool is created with FZ_LIST_FLAG_RETAIN so we can free the
-    // note immediately to give the note pool ownership
-    fz_free(note);
-    note = fz_list_val(_self->note_pool, 0, fz_note_t*);*/
-
-    // This macro does the same as the commented out lines above
-    fz_list_append_release(_self->note_pool, fz_new(fz_note), note, fz_note_t*);
-    note->voice = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
+    _self->voice            = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
 
     // Add an oscillator to the note voice with a sample form
-    fz_list_append_release(note->voice, fz_new(fz_osc), osc, fz_osc_t*);
+    fz_list_append_release(_self->voice, fz_new(fz_osc), osc, fz_osc_t*);
     fz_list_t *multicurve = fz_list_new(fz_mccurve_t);
     fz_mccurve_t mccurve = {
       .form  = NULL,
@@ -98,12 +88,14 @@ _fz_synthesizer_construct(
     }
     fz_free(multicurve);
 
-    /*#include <stdio.h>
-    FILE *file = fopen("form.csv", "w");
-    for (i = 0; i < osc->form->template->size; ++i) {
-        fprintf(file, "%f\n", fz_list_val(osc->form->template, i, fz_amp_t));
-    }
-    fclose(file);*/
+    fz_list_append_release(_self->note_pool, fz_new(fz_note), first, fz_note_t*);
+    first->freq = 440;
+    fz_list_append_release(_self->note_pool, fz_new(fz_note), third, fz_note_t*);
+    third->freq = first->freq*pow(HALFNOTE_DIST, 4);
+    fz_list_append_release(_self->note_pool, fz_new(fz_note), fifth, fz_note_t*);
+    fifth->freq = first->freq*pow(HALFNOTE_DIST, 7);
+    fz_list_append_release(_self->note_pool, fz_new(fz_note), minor_seventh, fz_note_t*);
+    minor_seventh->freq = first->freq*pow(HALFNOTE_DIST, 10);
 
     return _self;
 }
@@ -116,6 +108,7 @@ _fz_synthesizer_destruct(const fz_ptr_t  self)
 
     fz_free(_self->ob);
     fz_free(_self->note_pool);
+    fz_free(_self->voice);
 
     return _self;
 }
@@ -138,12 +131,23 @@ fz_synthesizer_output(
                       fz_synthesizer_t *synth,
                       fz_uint_t         num_frames)
 {
+    fz_size_t  i;
+    fz_note_t *note;
+    fz_amp_t   amp;
+
     fz_list_clear(synth->ob, num_frames);
 
-    fz_note_apply(
-            fz_list_val(synth->note_pool, 0, fz_note_t*),
-            synth->ob,
-            synth->sample_rate);
+    if (!synth->note_pool->size > 0) {
+        return synth->ob;
+    }
+
+    amp = 1.0/synth->note_pool->size ;
+
+    for (i = 0; i < synth->note_pool->size; ++i) {
+        note        = fz_list_val(synth->note_pool, i, fz_note_t*);
+        note->voice = synth->voice;
+        fz_note_apply(note, synth->ob, amp, synth->sample_rate);
+    }
 
     return synth->ob;
 }

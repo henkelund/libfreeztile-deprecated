@@ -44,6 +44,7 @@ _fz_note_construct(
     fz_note_t *_self = (fz_note_t*) self;
     _self->octxs     = fz_list_new(fz_octx_t);
     _self->voice     = NULL;
+    _self->freq      = 0;
     return _self;
 }
 
@@ -57,10 +58,8 @@ _fz_note_destruct(fz_ptr_t self)
         fz_free(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
     }
     fz_free(_self->octxs);
+    // synthesizer is responsible for _self->voice
 
-    if (_self->voice != NULL) {
-        fz_free(_self->voice);
-    }
     return _self;
 }
 
@@ -105,20 +104,26 @@ fz_result_t
 fz_note_apply(
               fz_note_t *note,
               fz_list_t *output,
+              fz_amp_t   amplitude,
               fz_uint_t  sample_rate)
 {
     fz_octx_t   *ctx;
     fz_uint_t    i;
-    fz_result_t  result = _fz_note_sync(note);
-    if (result != FZ_RESULT_SUCCESS) {
+    fz_result_t  result = FZ_RESULT_SUCCESS;
+
+    if (note->voice && (result = _fz_note_sync(note)) != FZ_RESULT_SUCCESS) {
         return result;
+    } else if (note->freq > 0) {
+
+        for (i = 0; i < note->octxs->size; ++i) {
+            ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
+            ctx->amp         = amplitude;
+            ctx->sample_rate = sample_rate;
+            ctx->freq        = note->freq;
+            fz_list_clear(ctx->framebuf, output->size);
+            fz_oscillator_apply(ctx, output);
+        }
     }
-    for (i = 0; i < note->octxs->size; ++i) {
-        ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
-        ctx->sample_rate = sample_rate;
-        ctx->freq        = 440;
-        fz_list_clear(ctx->framebuf, output->size);
-        fz_oscillator_apply(ctx, output);
-    }
-    return FZ_RESULT_SUCCESS;
+
+    return result;
 }

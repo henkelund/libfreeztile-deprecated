@@ -148,6 +148,7 @@ typedef struct {
     const fz_ptr_t  _scp;
     fz_voice_t     *voice;
     fz_list_t      *octxs;
+    fz_real_t       freq;
 } fz_note_t;
 
 /*typedef struct {

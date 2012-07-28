@@ -40,6 +40,7 @@
 fz_result_t fz_note_apply(
                           fz_note_t *note,
                           fz_list_t *output,
+                          fz_amp_t   amplitude,
                           fz_uint_t  sample_rate);
 
 const fz_ptr_t fz_note;
