@@ -27,12 +27,16 @@
  */
 
 #include <stdlib.h>
+#include <ctype.h>
+#include <math.h>
 #include "note.h"
 #include "freeztile.h"
 #include "util/list.h"
 #include "oscillator.h"
 
 // ### PRIVATE ###
+
+#define FZ_HALFNOTE_DIST 1.059463094 // pow(2, 1.0/12)
 
 static
 fz_ptr_t
@@ -126,4 +130,52 @@ fz_note_apply(
     }
 
     return result;
+}
+
+fz_real_t
+fz_note_parse_frequency(const fz_char_t *name)
+{
+    static const fz_char_t map[] = {'c',  '\0', 'd',  '\0', 'e',  'f',
+                                    '\0', 'g',  '\0', 'a',  '\0', 'b'} ;
+    fz_int_t  length             = strlen(name)                        ,
+              i                                                        ,
+              pos                = 0                                   ,
+              octave             = 4                                   ,
+              offset                                                   ;
+    fz_char_t note                                                     ;
+
+    if (length == 0) {
+        return -1;
+    }
+
+    for (; pos < length && isspace(name[pos]); ++pos);
+
+    if (pos == length) {
+        return -1;
+    }
+
+    note = tolower(name[pos]);
+
+    for (i = 0; i < 12; ++i) {
+        if (note == map[i]) {
+            offset = i - 9;
+            break;
+        } else if (i == 11) {
+            return -1;
+        }
+    }
+
+    for (++pos; pos < length; ++pos) {
+        if (tolower(name[pos]) == 'b') {
+            --offset;
+        } else if (name[pos] == '#') {
+            ++offset;
+        } else {
+            break;
+        }
+    }
+
+    octave = (pos < length ? atoi(name + pos) : octave) - 4;
+
+    return 440.0*pow(FZ_HALFNOTE_DIST, offset + 12*octave);
 }

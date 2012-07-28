@@ -43,6 +43,15 @@ fz_result_t fz_note_apply(
                           fz_amp_t   amplitude,
                           fz_uint_t  sample_rate);
 
+/**
+ * Parse a frequency from a given string
+ *
+ * @param  const fz_char_t* name
+ * @return fz_real_t
+ */
+fz_real_t
+fz_note_parse_frequency(const fz_char_t *name);
+
 const fz_ptr_t fz_note;
 
 #endif // _FZ_NOTE_H_

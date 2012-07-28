@@ -31,11 +31,8 @@
 #include "note.h"
 #include "oscillator.h"
 #include "form.h"
-#include <math.h>
 
 // ### PRIVATE ###
-
-#define HALFNOTE_DIST 1.059463094 // pow(2, 1.0/12)
 
 static
 fz_ptr_t
@@ -89,13 +86,13 @@ _fz_synthesizer_construct(
     fz_free(multicurve);
 
     fz_list_append_release(_self->note_pool, fz_new(fz_note), first, fz_note_t*);
-    first->freq = 440;
     fz_list_append_release(_self->note_pool, fz_new(fz_note), third, fz_note_t*);
-    third->freq = first->freq*pow(HALFNOTE_DIST, 4);
     fz_list_append_release(_self->note_pool, fz_new(fz_note), fifth, fz_note_t*);
-    fifth->freq = first->freq*pow(HALFNOTE_DIST, 7);
     fz_list_append_release(_self->note_pool, fz_new(fz_note), minor_seventh, fz_note_t*);
-    minor_seventh->freq = first->freq*pow(HALFNOTE_DIST, 10);
+    first->freq         = fz_note_parse_frequency("C");
+    third->freq         = fz_note_parse_frequency("E");
+    fifth->freq         = fz_note_parse_frequency("G");
+    minor_seventh->freq = fz_note_parse_frequency("Bb");
 
     return _self;
 }
