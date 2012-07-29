@@ -43,6 +43,7 @@
 #define FZ_NOTE_STEAL_POLICY_NOSTEAL  (1 << 0)
 #define FZ_NOTE_STEAL_POLICY_FIFO     (1 << 1)
 #define FZ_NOTE_STEAL_POLICY_QUIETEST (1 << 2)
+#define FZ_NOTE_STEAL_POLICY_EXPAND   (1 << 3)
 
 typedef struct {
     const fz_ptr_t             _scp;
@@ -68,6 +69,15 @@ fz_synthesizer_output(
  */
 fz_result_t
 fz_synthesizer_set_polyphony(fz_synthesizer_t *synth, fz_uint_t level);
+
+/**
+ * Get the maximum level of polyphony
+ *
+ * @param  fz_synthesizer_t* synth
+ * @return fz_uint_t
+ */
+fz_uint_t
+fz_synthesizer_get_polyphony(fz_synthesizer_t *synth);
 
 /**
  *

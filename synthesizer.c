@@ -157,7 +157,7 @@ fz_synthesizer_set_polyphony(
                              fz_synthesizer_t *synth,
                              fz_uint_t         level)
 {
-    fz_uint_t current_level = synth->note_pool->size + synth->active_notes->size;
+    fz_uint_t current_level = fz_synthesizer_get_polyphony(synth);
 
     for (; current_level < level; ++current_level) {
         fz_list_append_release(synth->note_pool, fz_new(fz_note), note, fz_note_t*);
@@ -175,6 +175,12 @@ fz_synthesizer_set_polyphony(
     return FZ_RESULT_SUCCESS;
 }
 
+fz_uint_t
+fz_synthesizer_get_polyphony(fz_synthesizer_t *synth)
+{
+    return synth->note_pool->size + synth->active_notes->size;
+}
+
 fz_note_t*
 fz_synthesizer_play(
                     fz_synthesizer_t *synth,
@@ -188,16 +194,25 @@ fz_synthesizer_play(
         fz_retain(note);
         fz_list_remove(synth->note_pool, synth->note_pool->size - 1);
 
-    } else if (synth->active_notes->size > 0) {
+    } else {
 
-        if (synth->flags & FZ_NOTE_STEAL_POLICY_FIFO) {
+        if (synth->flags & FZ_NOTE_STEAL_POLICY_FIFO &&
+                synth->active_notes->size > 0) {
 
             note = fz_list_val(synth->active_notes, 0, fz_note_t*);
             fz_retain(note);
             fz_list_remove(synth->active_notes, 0);
 
         } else if (synth->flags & FZ_NOTE_STEAL_POLICY_QUIETEST) {
+
             // TODO: Implement when ADSR is in place
+
+        } else if (synth->flags & FZ_NOTE_STEAL_POLICY_EXPAND) {
+
+            fz_synthesizer_set_polyphony(
+                    synth, fz_synthesizer_get_polyphony(synth) + 1);
+
+            return fz_synthesizer_play(synth, frequency);
         }
     }
 
