@@ -208,6 +208,7 @@ _fz_playback_alsa_destruct(fz_ptr_t self)
 {
     fz_playback_alsa_t *_self =
             ((const fz_object_t*) fz_playback_adapter)->destruct(self);
+    snd_pcm_drain(_self->playback_handle);
     snd_pcm_close(_self->playback_handle);
     return _self;
 }

@@ -38,6 +38,7 @@ typedef struct fz_playback_adapter_s {
     fz_synthesizer_t  *synthesizer;
     pthread_t          thread;
     pthread_attr_t     thread_attr;
+    pthread_mutex_t    mutex;
     fz_bool_t          stopped;
     fz_int_t         (*_play_callback)(struct fz_playback_adapter_s *self);
 } fz_playback_adapter_t;
@@ -59,6 +60,24 @@ fz_playback_adapter_start(fz_playback_adapter_t *adapter);
  */
 fz_result_t
 fz_playback_adapter_stop(fz_playback_adapter_t *adapter);
+
+/**
+ * Block the playback thread
+ *
+ * @param  fz_playback_adapter_t *adapter
+ * @return fz_int_t
+ */
+fz_int_t
+fz_playback_adapter_lock(fz_playback_adapter_t *adapter);
+
+/**
+ * Unblock the playback thread
+ *
+ * @param  fz_playback_adapter_t *adapter
+ * @return fz_int_t
+ */
+fz_int_t
+fz_playback_adapter_unlock(fz_playback_adapter_t *adapter);
 
 const fz_ptr_t fz_playback_adapter;
 

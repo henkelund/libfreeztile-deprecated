@@ -42,6 +42,8 @@ _fz_playback_adapter_construct(
     _self->_play_callback        = NULL;
     _self->synthesizer           = va_arg(*args, fz_synthesizer_t*);
 
+    pthread_mutex_init(&_self->mutex, NULL);
+
     if (_self->synthesizer != NULL) {
         fz_retain(_self->synthesizer);
     }
@@ -60,6 +62,8 @@ _fz_playback_adapter_destruct(const fz_ptr_t  self)
         fz_free(_self->synthesizer);
     }
 
+    pthread_mutex_destroy(&_self->mutex);
+
     return _self;
 }
 
@@ -68,13 +72,17 @@ void*
 _fz_playback_adapter_pthread_callback(void *arg)
 {
     fz_playback_adapter_t *adapter = (fz_playback_adapter_t*) arg;
-    fz_int_t err = 0;
+    fz_int_t               err     = 0;
+
     while (!adapter->stopped) {
-        if (!adapter->_play_callback ||
-                (err = adapter->_play_callback((fz_ptr_t) adapter)) <= 0) {
-            return NULL;
+        fz_playback_adapter_lock(adapter);
+        err = adapter->_play_callback(adapter);
+        fz_playback_adapter_unlock(adapter);
+        if (err <= 0) {
+            fz_playback_adapter_stop(adapter);
         }
     }
+
     return NULL;
 }
 
@@ -113,4 +121,16 @@ fz_playback_adapter_stop(fz_playback_adapter_t *adapter)
         pthread_join(adapter->thread, NULL);
     }
     return FZ_RESULT_SUCCESS;
+}
+
+fz_int_t
+fz_playback_adapter_lock(fz_playback_adapter_t *adapter)
+{
+    return pthread_mutex_lock(&adapter->mutex);
+}
+
+fz_int_t
+fz_playback_adapter_unlock(fz_playback_adapter_t *adapter)
+{
+    return pthread_mutex_unlock(&adapter->mutex);
 }
