@@ -26,6 +26,8 @@
  * @link freeztile.org
  */
 
+#include <stdio.h>
+
 #include "adapter.h"
 #include "../freeztile.h"
 
@@ -72,14 +74,11 @@ void*
 _fz_playback_adapter_pthread_callback(void *arg)
 {
     fz_playback_adapter_t *adapter = (fz_playback_adapter_t*) arg;
-    fz_int_t               err     = 0;
 
     while (!adapter->stopped) {
-        fz_playback_adapter_lock(adapter);
-        err = adapter->_play_callback(adapter);
-        fz_playback_adapter_unlock(adapter);
-        if (err <= 0) {
+        if (adapter->_play_callback(adapter) <= 0) {
             fz_playback_adapter_stop(adapter);
+            FZ_IF_DEBUG( fprintf(stderr, "Playback adapter failed\n"); )
         }
     }
 

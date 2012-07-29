@@ -35,6 +35,8 @@
 typedef struct {
     const fz_playback_adapter_t  _super;
     snd_pcm_t                   *playback_handle;
+    snd_pcm_hw_params_t         *hw_params;
+    snd_pcm_sw_params_t         *sw_params;
     fz_size_t                    buffer_size;
 } fz_playback_alsa_t;
 

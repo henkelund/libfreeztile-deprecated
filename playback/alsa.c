@@ -34,6 +34,9 @@
 
 // ### PRIVATE ###
 
+#define FZ_ALSA_PARAM(code) \
+            if ((err = code) < 0) return err
+
 static
 fz_int_t
 _fz_playback_alsa_play(fz_playback_adapter_t *self)
@@ -49,35 +52,40 @@ _fz_playback_alsa_play(fz_playback_adapter_t *self)
     }
 
     if ((err = snd_pcm_wait(_self->playback_handle, 1000)) < 0) {
-        fprintf(stderr, "poll failed (%s)\n", strerror(errno));
+        FZ_IF_DEBUG( fprintf(stderr, "poll failed (%s)\n", strerror(errno)); )
         return err;
     }
 
     if ((num_frames = snd_pcm_avail_update(_self->playback_handle)) < 0) {
         if (num_frames == -EPIPE) {
-            fprintf(stderr, "an xrun occured\n");
+            snd_pcm_prepare(_self->playback_handle);
+            FZ_IF_DEBUG( fprintf(stderr, "an xrun occured\n"); )
         } else {
-            fprintf(stderr, "unknown ALSA avail update return value (%d)\n",
-                    (int) num_frames);
+            FZ_IF_DEBUG(
+                fprintf(stderr, "unknown ALSA avail update return value (%d)\n",
+                    (int) num_frames); )
         }
         return num_frames;
     }
 
     num_frames = num_frames > _self->buffer_size ? _self->buffer_size : num_frames;
 
+    fz_playback_adapter_lock(self);
     output = fz_retain(fz_synthesizer_output(synth, num_frames));
 
     if (output->size != num_frames) {
         fz_free(output);
+        fz_playback_adapter_unlock(self);
         return 0;
     }
 
     if ((err = snd_pcm_writei(
             _self->playback_handle, output->items, num_frames)) < 0) {
-        fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
+        FZ_IF_DEBUG( fprintf(stderr, "write failed (%s)\n", snd_strerror(err)); )
     }
 
     fz_free(output);
+    fz_playback_adapter_unlock(self);
 
     return err;
 }
@@ -86,49 +94,23 @@ static
 fz_int_t
 _fz_playback_alsa_init_hw_params(fz_playback_alsa_t *self)
 {
-    fz_int_t             err       = 0                                     ;
-    fz_uint_t            rate      = self->_super.synthesizer->sample_rate ;
-    snd_pcm_hw_params_t *hw_params                                         ;
+    fz_int_t  err  = 0;
+    fz_uint_t rate = self->_super.synthesizer->sample_rate;
 
-    if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0) {
-        return err;
-    }
+    FZ_ALSA_PARAM(snd_pcm_hw_params_malloc(&self->hw_params));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_any(self->playback_handle, self->hw_params));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_set_access(
+            self->playback_handle, self->hw_params, SND_PCM_ACCESS_RW_INTERLEAVED));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_set_format(
+            self->playback_handle, self->hw_params, SND_PCM_FORMAT_FLOAT_LE));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_set_rate(
+            self->playback_handle, self->hw_params, rate, 0));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_set_channels(
+            self->playback_handle, self->hw_params, 1));
+    FZ_ALSA_PARAM(snd_pcm_hw_params_set_buffer_size(
+            self->playback_handle, self->hw_params, 4096));
+    FZ_ALSA_PARAM(snd_pcm_hw_params(self->playback_handle, self->hw_params));
 
-    if ((err = snd_pcm_hw_params_any(self->playback_handle, hw_params)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_hw_params_set_access(
-            self->playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_hw_params_set_format(
-            self->playback_handle, hw_params, SND_PCM_FORMAT_FLOAT_LE)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_hw_params_set_rate(
-            self->playback_handle, hw_params, rate, 0)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_hw_params_set_channels(
-            self->playback_handle, hw_params, 1)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_hw_params(self->playback_handle, hw_params)) < 0) {
-        snd_pcm_hw_params_free(hw_params);
-        return err;
-    }
-
-    snd_pcm_hw_params_free(hw_params);
     return err;
 }
 
@@ -136,39 +118,17 @@ static
 fz_int_t
 _fz_playback_alsa_init_sw_params(fz_playback_alsa_t *self)
 {
-    fz_int_t             err       = 0 ;
-    snd_pcm_sw_params_t *sw_params     ;
+    fz_int_t err = 0;
 
-    if ((err = snd_pcm_sw_params_malloc(&sw_params)) < 0) {
-        return err;
-    }
+    FZ_ALSA_PARAM(snd_pcm_sw_params_malloc(&self->sw_params));
+    FZ_ALSA_PARAM(snd_pcm_sw_params_current(self->playback_handle, self->sw_params));
+    FZ_ALSA_PARAM(snd_pcm_sw_params_set_avail_min(
+            self->playback_handle, self->sw_params, self->buffer_size));
+    FZ_ALSA_PARAM(snd_pcm_sw_params_set_start_threshold(
+            self->playback_handle, self->sw_params, 0U));
+    FZ_ALSA_PARAM(snd_pcm_sw_params(self->playback_handle, self->sw_params));
+    FZ_ALSA_PARAM(snd_pcm_prepare(self->playback_handle));
 
-    if ((err = snd_pcm_sw_params_current(self->playback_handle, sw_params)) < 0) {
-        snd_pcm_sw_params_free(sw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_sw_params_set_avail_min(
-            self->playback_handle, sw_params, self->buffer_size)) < 0) {
-        snd_pcm_sw_params_free(sw_params);
-        return err;
-    }
-    if ((err = snd_pcm_sw_params_set_start_threshold(
-            self->playback_handle, sw_params, 0U)) < 0) {
-        snd_pcm_sw_params_free(sw_params);
-        return err;
-    }
-    if ((err = snd_pcm_sw_params(self->playback_handle, sw_params)) < 0) {
-        snd_pcm_sw_params_free(sw_params);
-        return err;
-    }
-
-    if ((err = snd_pcm_prepare(self->playback_handle)) < 0) {
-        snd_pcm_sw_params_free(sw_params);
-        return err;
-    }
-
-    snd_pcm_sw_params_free(sw_params);
     return err;
 }
 
@@ -210,6 +170,8 @@ _fz_playback_alsa_destruct(fz_ptr_t self)
             ((const fz_object_t*) fz_playback_adapter)->destruct(self);
     snd_pcm_drain(_self->playback_handle);
     snd_pcm_close(_self->playback_handle);
+    snd_pcm_hw_params_free(_self->hw_params);
+    snd_pcm_sw_params_free(_self->sw_params);
     return _self;
 }
 
