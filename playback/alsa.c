@@ -52,7 +52,7 @@ _fz_playback_alsa_play(fz_playback_adapter_t *self)
     }
 
     if ((err = snd_pcm_wait(_self->playback_handle, 1000)) < 0) {
-        FZ_IF_DEBUG( fprintf(stderr, "poll failed (%s)\n", strerror(errno)); )
+        fzdebug("poll failed (%s)\n", strerror(errno));
         return err;
     }
 
@@ -61,9 +61,7 @@ _fz_playback_alsa_play(fz_playback_adapter_t *self)
             snd_pcm_prepare(_self->playback_handle);
             FZ_IF_DEBUG( fprintf(stderr, "an xrun occured\n"); )
         } else {
-            FZ_IF_DEBUG(
-                fprintf(stderr, "unknown ALSA avail update return value (%d)\n",
-                    (int) num_frames); )
+            fzdebug("unknown avail update return value (%d)\n", (int) num_frames);
         }
         return num_frames;
     }
@@ -81,7 +79,7 @@ _fz_playback_alsa_play(fz_playback_adapter_t *self)
 
     if ((err = snd_pcm_writei(
             _self->playback_handle, output->items, num_frames)) < 0) {
-        FZ_IF_DEBUG( fprintf(stderr, "write failed (%s)\n", snd_strerror(err)); )
+        fzdebug("write failed (%s)\n", snd_strerror(err));
     }
 
     fz_free(output);
@@ -145,15 +143,15 @@ _fz_playback_alsa_construct(
 
     if ((err = snd_pcm_open(
             &_self->playback_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-        fprintf(stderr, "cannot open audio device (%s)\n", snd_strerror(err));
+        fzdebug("cannot open audio device (%s)\n", snd_strerror(err));
         exit(err);
     }
     if ((err = _fz_playback_alsa_init_hw_params(_self)) < 0) {
-        fprintf(stderr, "hardware param error (%s)\n", snd_strerror(err));
+        fzdebug("hardware param error (%s)\n", snd_strerror(err));
         exit(err);
     }
     if ((err = _fz_playback_alsa_init_sw_params(_self)) < 0) {
-        fprintf(stderr, "software param error (%s)\n", snd_strerror(err));
+        fzdebug("software param error (%s)\n", snd_strerror(err));
         exit(err);
     }
 

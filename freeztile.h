@@ -38,8 +38,10 @@
 #if defined FZ_DEBUG && FZ_DEBUG == 1
     #include <stdio.h>
     #define FZ_IF_DEBUG(code) code
+    #define fzdebug(...) fprintf(stderr, __VA_ARGS__)
 #else
     #define FZ_IF_DEBUG(code) /* code */
+    #define fzdebug(...) /* __VA_ARGS__ */
 #endif
 
 /**

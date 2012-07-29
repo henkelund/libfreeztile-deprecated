@@ -77,7 +77,7 @@ fz_free(fz_ptr_t self)
             self = (*type)->destruct(self);
         }
         free(refcnt);
-        FZ_IF_DEBUG( printf("%d objects (-)\n", --_fz_obj_count); )
+        fzdebug("%d objects (-)\n", --_fz_obj_count);
     }
 }
 
