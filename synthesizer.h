@@ -36,18 +36,49 @@
 #define FZ_SAMPLE_RATE 44100
 #endif
 
+#ifndef FZ_POLYPHONY_LEVEL
+#define FZ_POLYPHONY_LEVEL 4
+#endif
+
+#define FZ_NOTE_STEAL_POLICY_NOSTEAL  (1 << 0)
+#define FZ_NOTE_STEAL_POLICY_FIFO     (1 << 1)
+#define FZ_NOTE_STEAL_POLICY_QUIETEST (1 << 2)
+
 typedef struct {
     const fz_ptr_t             _scp;
     fz_list_t/*<fz_amp_t>*/   *ob;
     fz_list_t/*<fz_note_t*>*/ *note_pool;
+    fz_list_t/*<fz_note_t*>*/ *active_notes;
     fz_uint_t                  sample_rate;
     fz_voice_t                *voice;
+    fz_flags_t                 flags;
 } fz_synthesizer_t;
 
 fz_list_t/*<fz_amp_t>*/*
 fz_synthesizer_output(
                       fz_synthesizer_t *synth,
                       fz_uint_t         num_frames);
+
+/**
+ * Set the maximum level of polyphony, i.e. the sum of idle and active notes.
+ *
+ * @param  fz_synthesizer_t* synth
+ * @param  fz_int_t          level
+ * @return fz_result_t
+ */
+fz_result_t
+fz_synthesizer_set_polyphony(fz_synthesizer_t *synth, fz_uint_t level);
+
+/**
+ *
+ * @param  fz_synthesizer_t *synth
+ * @param  fz_real_t         frequency
+ * @return fz_note_t*
+ */
+fz_note_t*
+fz_synthesizer_play(
+                    fz_synthesizer_t *synth,
+                    fz_real_t         frequency);
 
 const fz_ptr_t fz_synthesizer;
 

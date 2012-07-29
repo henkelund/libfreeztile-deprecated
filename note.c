@@ -49,6 +49,7 @@ _fz_note_construct(
     _self->octxs     = fz_list_new(fz_octx_t);
     _self->voice     = NULL;
     _self->freq      = 0;
+    _self->is_active = FALSE;
     return _self;
 }
 
@@ -178,4 +179,11 @@ fz_note_parse_frequency(const fz_char_t *name)
     octave = (pos < length ? atoi(name + pos) : octave) - 4;
 
     return 440.0*pow(FZ_HALFNOTE_DIST, offset + 12*octave);
+}
+
+fz_bool_t
+fz_note_is_active(fz_note_t *note)
+{
+    // This is a temp implementation until ADSR is in place
+    return note->is_active;
 }

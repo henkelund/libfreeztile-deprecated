@@ -52,6 +52,14 @@ fz_result_t fz_note_apply(
 fz_real_t
 fz_note_parse_frequency(const fz_char_t *name);
 
+/**
+ *
+ * @param  fz_note_t* note
+ * @return fz_bool_t
+ */
+fz_bool_t
+fz_note_is_active(fz_note_t *note);
+
 const fz_ptr_t fz_note;
 
 #endif // _FZ_NOTE_H_

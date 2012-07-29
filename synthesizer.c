@@ -37,15 +37,17 @@
 static
 fz_ptr_t
 _fz_synthesizer_construct(
-                            const fz_ptr_t  self,
-                            va_list        *args)
+                          const fz_ptr_t  self,
+                          va_list        *args)
 {
     (void) args;
     fz_synthesizer_t *_self = (fz_synthesizer_t*) self;
     _self->ob               = fz_list_new(fz_amp_t);
     _self->note_pool        = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
+    _self->active_notes     = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
     _self->sample_rate      = FZ_SAMPLE_RATE;
     _self->voice            = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
+    _self->flags            = FZ_NOTE_STEAL_POLICY_NOSTEAL;
 
     // Add an oscillator to the note voice with a sample form
     fz_list_append_release(_self->voice, fz_new(fz_osc), osc, fz_osc_t*);
@@ -85,26 +87,20 @@ _fz_synthesizer_construct(
     }
     fz_free(multicurve);
 
-    fz_list_append_release(_self->note_pool, fz_new(fz_note), first, fz_note_t*);
-    fz_list_append_release(_self->note_pool, fz_new(fz_note), third, fz_note_t*);
-    fz_list_append_release(_self->note_pool, fz_new(fz_note), fifth, fz_note_t*);
-    fz_list_append_release(_self->note_pool, fz_new(fz_note), minor_seventh, fz_note_t*);
-    first->freq         = fz_note_parse_frequency("C");
-    third->freq         = fz_note_parse_frequency("E");
-    fifth->freq         = fz_note_parse_frequency("G");
-    minor_seventh->freq = fz_note_parse_frequency("Bb");
+    fz_synthesizer_set_polyphony(_self, FZ_POLYPHONY_LEVEL);
 
     return _self;
 }
 
 static
 fz_ptr_t
-_fz_synthesizer_destruct(const fz_ptr_t  self)
+_fz_synthesizer_destruct(const fz_ptr_t self)
 {
     fz_synthesizer_t *_self = (fz_synthesizer_t*) self;
 
     fz_free(_self->ob);
     fz_free(_self->note_pool);
+    fz_free(_self->active_notes);
     fz_free(_self->voice);
 
     return _self;
@@ -122,7 +118,6 @@ static const fz_object_t _fz_synthesizer = {
 
 const fz_ptr_t fz_synthesizer = (const fz_ptr_t) &_fz_synthesizer;
 
-
 fz_list_t*
 fz_synthesizer_output(
                       fz_synthesizer_t *synth,
@@ -134,17 +129,84 @@ fz_synthesizer_output(
 
     fz_list_clear(synth->ob, num_frames);
 
-    if (!synth->note_pool->size > 0) {
+    if (!synth->active_notes->size > 0) {
         return synth->ob;
     }
 
-    amp = 1.0/synth->note_pool->size ;
+    amp = 1.0/synth->active_notes->size ;
 
-    for (i = 0; i < synth->note_pool->size; ++i) {
-        note        = fz_list_val(synth->note_pool, i, fz_note_t*);
+    for (i = 0; i < synth->active_notes->size; ++i) {
+        note        = fz_list_val(synth->active_notes, i, fz_note_t*);
         note->voice = synth->voice;
         fz_note_apply(note, synth->ob, amp, synth->sample_rate);
+
+        // Put back in pool if done playing
+        if (!fz_note_is_active(note)) {
+            // Append before remove or note will be freed (FZ_LIST_FLAG_RETAIN)
+            fz_list_append(synth->note_pool, &note);
+            fz_list_remove(synth->active_notes, i);
+            --i;
+        }
     }
 
     return synth->ob;
+}
+
+fz_result_t
+fz_synthesizer_set_polyphony(
+                             fz_synthesizer_t *synth,
+                             fz_uint_t         level)
+{
+    fz_uint_t current_level = synth->note_pool->size + synth->active_notes->size;
+
+    for (; current_level < level; ++current_level) {
+        fz_list_append_release(synth->note_pool, fz_new(fz_note), note, fz_note_t*);
+        note->voice = synth->voice;
+    }
+
+    for (; current_level > level; --current_level) {
+        if (synth->note_pool->size > 0) {
+            fz_list_remove(synth->note_pool, synth->note_pool->size - 1);
+        } else {
+            fz_list_remove(synth->active_notes, synth->active_notes->size - 1);
+        }
+    }
+
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_note_t*
+fz_synthesizer_play(
+                    fz_synthesizer_t *synth,
+                    fz_real_t         frequency)
+{
+    fz_note_t *note = NULL;
+
+    if (synth->note_pool->size > 0) {
+
+        note = fz_list_val(synth->note_pool, synth->note_pool->size - 1, fz_note_t*);
+        fz_retain(note);
+        fz_list_remove(synth->note_pool, synth->note_pool->size - 1);
+
+    } else if (synth->active_notes->size > 0) {
+
+        if (synth->flags & FZ_NOTE_STEAL_POLICY_FIFO) {
+
+            note = fz_list_val(synth->active_notes, 0, fz_note_t*);
+            fz_retain(note);
+            fz_list_remove(synth->active_notes, 0);
+
+        } else if (synth->flags & FZ_NOTE_STEAL_POLICY_QUIETEST) {
+            // TODO: Implement when ADSR is in place
+        }
+    }
+
+    if (note != NULL) {
+        note->freq      = frequency;
+        note->is_active = TRUE;
+        fz_list_append(synth->active_notes, &note);
+        fz_free(note);
+    }
+
+    return note;
 }
