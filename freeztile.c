@@ -34,8 +34,7 @@
 #include <inttypes.h>
 #include "freeztile.h"
 
-#include <stdio.h>
-static fz_int_t _fz_obj_count = 0;
+FZ_IF_DEBUG( static fz_int_t _fz_obj_count = 0; )
 
 fz_ptr_t
 fz_new(const fz_ptr_t type, ...)
@@ -55,7 +54,7 @@ fz_new(const fz_ptr_t type, ...)
         self = _type->construct(self, &ap);
         va_end(ap);
     }
-    ++_fz_obj_count;
+    FZ_IF_DEBUG( ++_fz_obj_count; )
     return self;
 }
 
@@ -78,7 +77,7 @@ fz_free(fz_ptr_t self)
             self = (*type)->destruct(self);
         }
         free(refcnt);
-        printf("%d objects (-)\n", --_fz_obj_count);
+        FZ_IF_DEBUG( printf("%d objects (-)\n", --_fz_obj_count); )
     }
 }
 

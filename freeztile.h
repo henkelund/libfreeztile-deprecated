@@ -33,6 +33,15 @@
 #include <inttypes.h>
 #include "types.h"
 
+//#define FZ_DEBUG 1
+
+#if defined FZ_DEBUG && FZ_DEBUG == 1
+    #include <stdio.h>
+    #define FZ_IF_DEBUG(code) code
+#else
+    #define FZ_IF_DEBUG(code) /* code */
+#endif
+
 /**
  * FreeZtile return values
  *
