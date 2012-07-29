@@ -1,19 +1,29 @@
 Usage sample
 
-// Create synthesizer & playback engine
-fz_synthesizer_t   *synth   = fz_new(fz_synthesizer);
-fz_playback_alsa_t *adapter = fz_new(fz_playback_alsa, synth, 44100);
+puts("Start up");
+fz_synthesizer_t      *synth   = fz_new(fz_synthesizer);
+fz_playback_adapter_t *adapter = fz_new(fz_playback_alsa, synth, 4096);
+fz_playback_adapter_start(adapter);
 
-// Play some notes
+puts("Play C");
+fz_playback_adapter_lock(adapter);
 fz_synthesizer_play(synth, fz_note_parse_frequency("C5"));
+fz_playback_adapter_unlock(adapter);
+sleep(1);
+
+puts("Play E");
+fz_playback_adapter_lock(adapter);
 fz_synthesizer_play(synth, fz_note_parse_frequency("E5"));
+fz_playback_adapter_unlock(adapter);
+sleep(1);
+
+puts("Play Bb");
+fz_playback_adapter_lock(adapter);
 fz_synthesizer_play(synth, fz_note_parse_frequency("Bb5"));
+fz_playback_adapter_unlock(adapter);
+sleep(1);
 
-// Run for three seconds
-fz_playback_adapter_start((fz_playback_adapter_t*) adapter);
-sleep(3);
-fz_playback_adapter_stop((fz_playback_adapter_t*) adapter);
-
-// Free objects
+puts("Shut down");
+fz_playback_adapter_stop(adapter);
 fz_free(adapter);
 fz_free(synth);
