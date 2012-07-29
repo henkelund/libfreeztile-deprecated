@@ -106,7 +106,8 @@ _fz_playback_alsa_init_hw_params(fz_playback_alsa_t *self)
     FZ_ALSA_PARAM(snd_pcm_hw_params_set_channels(
             self->playback_handle, self->hw_params, 1));
     FZ_ALSA_PARAM(snd_pcm_hw_params_set_buffer_size(
-            self->playback_handle, self->hw_params, 4096));
+            self->playback_handle, self->hw_params,
+            (snd_pcm_uframes_t) self->buffer_size*2));
     FZ_ALSA_PARAM(snd_pcm_hw_params(self->playback_handle, self->hw_params));
 
     return err;
@@ -140,6 +141,7 @@ _fz_playback_alsa_construct(
     fz_playback_alsa_t *_self =
             ((const fz_object_t*) fz_playback_adapter)->construct(self, args);
     ((fz_playback_adapter_t*) _self)->_play_callback = _fz_playback_alsa_play;
+    _self->buffer_size = va_arg(*args, fz_size_t);
 
     if ((err = snd_pcm_open(
             &_self->playback_handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
@@ -154,8 +156,6 @@ _fz_playback_alsa_construct(
         fzdebug("software param error (%s)\n", snd_strerror(err));
         exit(err);
     }
-
-    _self->buffer_size = va_arg(*args, fz_size_t);
 
     return _self;
 }
