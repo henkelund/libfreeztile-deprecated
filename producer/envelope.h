@@ -26,26 +26,50 @@
  * @link freeztile.org
  */
 
-#ifndef _FZ_FILTER_H_
-#define _FZ_FILTER_H_
+#ifndef _FZ_ENVELOPE_H_
+#define _FZ_ENVELOPE_H_
 
-#include <stdarg.h>
-#include "types.h"
+#include "producer.h"
+#include "../freeztile.h"
 
-#define FZ_FILTER_OPT_NONE   0
-#define FZ_FILTER_OPT_USEENV (1 << 0)
+BEGIN_C_DECLS
+
+#define FZ_ENV_ATTACK   0
+#define FZ_ENV_DECAY    1
+#define FZ_ENV_SUSTAIN  2
+#define FZ_ENV_RELEASE  3
+#define FZ_ENV_SILENT  -1
+
+typedef struct {
+    fz_object_t  *_class;
+    fz_curve_t    curves    [4];
+    fz_uint_t     durations [4];
+    fz_form_t    *cache     [4];
+} fz_envdesc_t;
+
+typedef struct {
+    fz_producer_t  _super;
+    fz_envdesc_t  *descriptor;
+    fz_int_t       state;
+    fz_uint_t      frame;
+    fz_real_t      factor;
+} fz_envelope_t;
+
+const fz_ptr_t fz_envdesc;
+const fz_ptr_t fz_envelope;
 
 /**
  *
- * @param filter
- * @param samples
- * @return
+ * @param fz_envelope_t *envelope
  */
-fz_uint_t   fz_filter_apply(
-                            fz_filter_t *filter,
-                            fz_list_t   *samples);
+void fz_envelope_attack PARAMS((fz_envelope_t *envelope));
 
-const fz_ptr_t fz_filter;
-const fz_ptr_t fz_lowpass;
+/**
+ *
+ * @param fz_envelope_t *envelope
+ */
+void fz_envelope_release PARAMS((fz_envelope_t *envelope));
 
-#endif // _FZ_FILTER_H_
+END_C_DECLS
+
+#endif // _FZ_ENVELOPE_H_
