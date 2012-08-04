@@ -29,9 +29,30 @@
 #ifndef _FZ_FREEZTILE_H_
 #define _FZ_FREEZTILE_H_
 
+#undef BEGIN_C_DECLS
+#undef END_C_DECLS
+#ifdef __cplusplus
+# define BEGIN_C_DECLS extern "C" {
+# define END_C_DECLS }
+#else
+# define BEGIN_C_DECLS /* empty */
+# define END_C_DECLS /* empty */
+#endif
+
+#undef PARAMS
+#if defined (__STDC__) || defined (_AIX) \
+        || (defined (__mips) && defined (_SYSTYPE_SVR4)) \
+        || defined(WIN32) || defined(__cplusplus)
+# define PARAMS(protos) protos
+#else
+# define PARAMS(protos) ()
+#endif
+
 #include <stdarg.h>
 #include <inttypes.h>
 #include "types.h"
+
+BEGIN_C_DECLS
 
 //#define FZ_DEBUG 1
 
@@ -60,7 +81,7 @@
  * @param  ...
  * @return fz_ptr_t New object of given type
  */
-fz_ptr_t    fz_new(const fz_ptr_t type, ...);
+fz_ptr_t    fz_new PARAMS((const fz_ptr_t type, ...));
 
 /**
  * Increase reference count of obj
@@ -68,13 +89,13 @@ fz_ptr_t    fz_new(const fz_ptr_t type, ...);
  * @param  fz_ptr_t obj
  * @return fz_ptr_t obj
  */
-fz_ptr_t    fz_retain(fz_ptr_t obj);
+fz_ptr_t    fz_retain PARAMS((fz_ptr_t obj));
 
 /**
  *
  * @param  fz_ptr_t self
  */
-void        fz_free(fz_ptr_t self);
+void        fz_free PARAMS((fz_ptr_t self));
 
 /**
  * Returns a DJBX33X hash integer of the given data
@@ -83,15 +104,17 @@ void        fz_free(fz_ptr_t self);
  * @param  size
  * @return
  */
-uint32_t    fz_hash(
-                    const fz_char_t *data,
-                    fz_size_t        size);
+uint32_t    fz_hash PARAMS((
+                            const fz_char_t *data,
+                            fz_size_t        size));
 
 /**
  *
  * @param  fz_result_t result
  * @return const char*
  */
-const char* fz_result_string(fz_result_t result);
+const char* fz_result_string PARAMS((fz_result_t result));
+
+END_C_DECLS
 
 #endif // _FZ_FREEZTILE_H_
