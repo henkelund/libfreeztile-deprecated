@@ -26,33 +26,21 @@
  * @link freeztile.org
  */
 
-#ifndef _FZ_FILTER_H_
-#define _FZ_FILTER_H_
+#ifndef _FZ_AMPLIFIER_H_
+#define	_FZ_AMPLIFIER_H_ 1
 
 #include "../freeztile.h"
-#include "../producer/envelope.h"
+#include "filter.h"
 
 BEGIN_C_DECLS
 
-typedef struct fz_filter_s {
-    const fz_ptr_t   _class;
-    fz_int_t       (*filtrate)(struct fz_filter_s *self, fz_list_t *buffer);
-    fz_producer_t   *regulator;
-    fz_list_t       *regbuf;
-} fz_filter_t;
+typedef struct {
+    fz_filter_t _super;
+    fz_amp_t    level;
+} fz_amplifier_t;
 
-const fz_ptr_t fz_filter;
-
-/**
- *
- * @param  fz_ptr_t             filter
- * @param  fz_list_t<fz_amp_t> *buffer
- * @return The number of filter samples or a negative error code
- */
-fz_result_t fz_filtrate PARAMS((
-                                fz_ptr_t   filter,
-                                fz_list_t *buffer));
+const fz_ptr_t fz_amplifier;
 
 END_C_DECLS
 
-#endif // _FZ_FILTER_H_
+#endif // _FZ_AMPLIFIER_H_

@@ -27,21 +27,35 @@
  */
 
 #include "filter.h"
+#include "../util/list.h"
 
 static
 fz_ptr_t
-_fz_filter_construct(fz_ptr_t  self,
+_fz_filter_construct(
+                     fz_ptr_t  self,
                      va_list  *args)
 {
-    fz_filter_t *_self           = (fz_filter_t*) self;
-    *((void**) &_self->filtrate) = va_arg(args, void*);
+    (void) args;
+    fz_filter_t *_self = (fz_filter_t*) self;
+    _self->filtrate    = NULL;
+    _self->regulator   = NULL;
+    _self->regbuf      = fz_list_new(fz_real_t);
+    return _self;
+}
+
+static
+fz_ptr_t
+_fz_filter_destruct(fz_ptr_t self)
+{
+    fz_filter_t *_self = (fz_filter_t*) self;
+    fz_free(_self->regbuf);
     return _self;
 }
 
 static const fz_object_t _fz_filter = {
     sizeof (fz_filter_t),
     _fz_filter_construct,
-    NULL,
+    _fz_filter_destruct,
     NULL,
     NULL
 };
@@ -54,8 +68,14 @@ fz_filtrate(
             fz_list_t *buffer)
 {
     fz_filter_t *_filter = (fz_filter_t*) filter;
+
     if (!_filter || !_filter->filtrate) {
         return -FZ_RESULT_INVALID_ARG;
+    }
+
+    if (_filter->regulator) {
+        fz_list_clear(_filter->regbuf, buffer->size);
+        fz_produce(_filter->regulator, _filter->regbuf);
     }
 
     return _filter->filtrate(_filter, buffer);
