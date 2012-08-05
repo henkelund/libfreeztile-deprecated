@@ -42,9 +42,8 @@ BEGIN_C_DECLS
 
 typedef struct {
     fz_object_t  *_class;
-    fz_curve_t    curves    [4];
+    fz_form_t    *forms     [4];
     fz_uint_t     durations [4];
-    fz_form_t    *cache     [4];
 } fz_envdesc_t;
 
 typedef struct {
@@ -69,6 +68,41 @@ void fz_envelope_attack PARAMS((fz_envelope_t *envelope));
  * @param fz_envelope_t *envelope
  */
 void fz_envelope_release PARAMS((fz_envelope_t *envelope));
+
+/**
+ *
+ * @param  fz_envdesc_t *descriptor Envelope descriptor
+ * @param  fz_curve_t   *curve      A curve struct
+ * @param  fz_int_t      state      A, D, S or R
+ * @return fz_result_t              FZ_RESULT_SUCCESS on success
+ */
+fz_result_t fz_envelope_set_adsr_curve PARAMS((
+                                               fz_envdesc_t *descriptor,
+                                               fz_curve_t   *curve,
+                                               fz_int_t      state));
+
+/**
+ * Define the adsr shape for the given envelope descriptor
+ *
+ * @param  fz_envdesc_t *descriptor Envelope descriptor
+ * @param  fz_amp_t      al         Attack level
+ * @param  fz_uint_t     ad         Attack duration
+ * @param  fz_amp_t      al         Decay level
+ * @param  fz_uint_t     dd         Decay duration
+ * @param  fz_amp_t      sl         Sustain level
+ * @param  fz_uint_t     dd         Sustain duration
+ * @param  fz_uint_t     rd         Release duration
+ * @return fz_result_t              FZ_RESULT_SUCCESS on success
+ */
+fz_result_t fz_envelope_set_adsr PARAMS((
+                                         fz_envdesc_t *descriptor,
+                                         fz_amp_t      al,
+                                         fz_uint_t     ad,
+                                         fz_amp_t      dl,
+                                         fz_uint_t     dd,
+                                         fz_amp_t      sl,
+                                         fz_uint_t     sd,
+                                         fz_uint_t     rd));
 
 END_C_DECLS
 

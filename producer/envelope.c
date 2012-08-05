@@ -38,41 +38,12 @@ _fz_envdesc_construct(fz_ptr_t  self,
 {
     (void) args;
     fz_envdesc_t *_self = (fz_envdesc_t*) self;
+    fz_uint_t i;
 
-    // Init to basic sample ADSR shape
-    _self->curves[FZ_ENV_ATTACK].start = 0.;
-    _self->curves[FZ_ENV_ATTACK].a.x   = 0.;
-    _self->curves[FZ_ENV_ATTACK].a.y   = 0.;
-    _self->curves[FZ_ENV_ATTACK].b.x   = 1.;
-    _self->curves[FZ_ENV_ATTACK].b.y   = 1.;
-    _self->curves[FZ_ENV_ATTACK].end   = 1.;
-
-    _self->curves[FZ_ENV_DECAY].start = 1.;
-    _self->curves[FZ_ENV_DECAY].a.x   = 0.;
-    _self->curves[FZ_ENV_DECAY].a.y   = 1.;
-    _self->curves[FZ_ENV_DECAY].b.x   = 1.;
-    _self->curves[FZ_ENV_DECAY].b.y   = .5;
-    _self->curves[FZ_ENV_DECAY].end   = .5;
-
-    _self->curves[FZ_ENV_SUSTAIN].start = .5;
-    _self->curves[FZ_ENV_SUSTAIN].a.x   = 0.;
-    _self->curves[FZ_ENV_SUSTAIN].a.y   = .5;
-    _self->curves[FZ_ENV_SUSTAIN].b.x   = 1.;
-    _self->curves[FZ_ENV_SUSTAIN].b.y   = .75;
-    _self->curves[FZ_ENV_SUSTAIN].end   = .75;
-
-    _self->curves[FZ_ENV_RELEASE].start = .75;
-    _self->curves[FZ_ENV_RELEASE].a.x   = 0.;
-    _self->curves[FZ_ENV_RELEASE].a.y   = .75;
-    _self->curves[FZ_ENV_RELEASE].b.x   = 1.;
-    _self->curves[FZ_ENV_RELEASE].b.y   = 0.;
-    _self->curves[FZ_ENV_RELEASE].end   = 0.;
-
-    fz_uint_t i = 0;
-    for (; i < 4; ++i) {
-        _self->durations[i] = 256; //FIXME: ADSR default durations
-        _self->cache[i]     = fz_new(fz_form);
-        fz_list_clear(_self->cache[i]->template, 1024); //FIXME: Default resolution
+    for (i = 0; i < 4; ++i) {
+        _self->durations[i] = 0;
+        _self->forms[i]     = fz_new(fz_form);
+        fz_list_clear(_self->forms[i]->template, 1024); //FIXME: Default resolution
     }
 
     return _self;
@@ -86,7 +57,7 @@ _fz_envdesc_destruct(fz_ptr_t self)
 
     fz_uint_t i = 0;
     for (; i < 4; ++i) {
-        fz_free(_self->cache[i]);
+        fz_free(_self->forms[i]);
     }
 
     return _self;
@@ -109,8 +80,7 @@ _fz_envelope_produce(
         return buffer->size;
     }
 
-    curve = _self->descriptor->cache[_self->state];
-    fz_curve_render(&_self->descriptor->curves[_self->state], curve);
+    curve = _self->descriptor->forms[_self->state];
 
     for (i = 0; i < buffer->size; ++i, ++_self->frame) {
         if (_self->frame >= _self->descriptor->durations[_self->state]) {
@@ -132,8 +102,7 @@ _fz_envelope_produce(
                     _self->state = FZ_ENV_SILENT;
                     break;
                 default:
-                    curve = _self->descriptor->cache[++_self->state];
-                    fz_curve_render(&_self->descriptor->curves[_self->state], curve);
+                    curve = _self->descriptor->forms[++_self->state];
                     _self->frame = 0;
                     break;
             }
@@ -237,4 +206,78 @@ fz_envelope_release(fz_envelope_t *envelope)
 {
     envelope->frame = 0;
     envelope->state = FZ_ENV_RELEASE;
+}
+
+fz_result_t
+fz_envelope_set_adsr_curve(
+                           fz_envdesc_t *descriptor,
+                           fz_curve_t   *curve,
+                           fz_int_t      state)
+{
+    fz_result_t err;
+
+    if (state < 0 || state > 3) {
+        return FZ_RESULT_INVALID_ARG;
+    }
+
+    err = fz_curve_render(curve, descriptor->forms[state]);
+    if (err != FZ_RESULT_SUCCESS) {
+        return err;
+    }
+
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_envelope_set_adsr(
+                     fz_envdesc_t *descriptor,
+                     fz_amp_t      al,
+                     fz_uint_t     ad,
+                     fz_amp_t      dl,
+                     fz_uint_t     dd,
+                     fz_amp_t      sl,
+                     fz_uint_t     sd,
+                     fz_uint_t     rd)
+{
+    // FZ_ENV_ATTACK
+    fz_curve_t attack = {
+        .start = 0,
+        .a     = {.x = 0,  .y = 0},
+        .b     = {.x = 1., .y = al},
+        .end   = al
+    };
+    fz_envelope_set_adsr_curve(descriptor, &attack, FZ_ENV_ATTACK);
+    descriptor->durations[FZ_ENV_ATTACK] = ad;
+
+    // FZ_ENV_DECAY
+    fz_curve_t decay = {
+        .start = al,
+        .a     = {.x = 0,  .y = al},
+        .b     = {.x = 1., .y = dl},
+        .end   = dl
+    };
+    fz_envelope_set_adsr_curve(descriptor, &decay, FZ_ENV_DECAY);
+    descriptor->durations[FZ_ENV_DECAY] = dd;
+
+    // FZ_ENV_SUSTAIN
+    fz_curve_t sustain = {
+        .start = dl,
+        .a     = {.x = 0,  .y = dl},
+        .b     = {.x = 1., .y = sl},
+        .end   = sl
+    };
+    fz_envelope_set_adsr_curve(descriptor, &sustain, FZ_ENV_SUSTAIN);
+    descriptor->durations[FZ_ENV_SUSTAIN] = sd;
+
+    // FZ_ENV_RELEASE
+    fz_curve_t release = {
+        .start = sl,
+        .a     = {.x = 0,  .y = sl},
+        .b     = {.x = 1., .y = 0},
+        .end   = 0
+    };
+    fz_envelope_set_adsr_curve(descriptor, &release, FZ_ENV_RELEASE);
+    descriptor->durations[FZ_ENV_RELEASE] = rd;
+
+    return FZ_RESULT_SUCCESS;
 }
