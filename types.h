@@ -129,19 +129,6 @@ typedef struct {
     fz_float_t  share;
 } fz_mccurve_t;
 
-typedef struct {
-    const fz_ptr_t   _scp;
-    fz_uint_t      (*filter)(fz_ptr_t filter, fz_list_t *samples);
-    fz_flags_t       options;
-    fz_list_t       *env_buffer;
-} fz_filter_t;
-
-typedef struct {
-    fz_filter_t _parent;
-    fz_float_t  rc;
-    fz_amp_t    last;
-} fz_lowpass_t;
-
 typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
 
 typedef struct {
@@ -151,19 +138,5 @@ typedef struct {
     fz_real_t       freq;
     fz_bool_t       is_active;
 } fz_note_t;
-
-/*typedef struct {
-    fz_form_t *adsr[4];
-    fz_uint_t  sizes[4];
-    fz_uint_t  position;
-    fz_uint_t  state;
-    fz_real_t  mix;
-} fz_envelope_t;*/
-
-/*typedef struct {
-    const fz_ptr_t  _scp;
-    fz_list_t      *values;
-} fz_regulator_t;*/
-
 
 #endif // _FZ_TYPES_H_

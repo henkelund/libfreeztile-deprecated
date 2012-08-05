@@ -34,8 +34,8 @@
 BEGIN_C_DECLS
 
 typedef struct fz_producer_s {
-    fz_object_t  *_class;
-    fz_int_t    (*produce)(struct fz_producer_s *self, fz_list_t *buffer);
+    const fz_ptr_t   _class;
+    fz_int_t       (*produce)(struct fz_producer_s *self, fz_list_t *buffer);
 } fz_producer_t;
 
 const fz_ptr_t fz_producer;

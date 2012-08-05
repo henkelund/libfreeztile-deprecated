@@ -29,23 +29,27 @@
 #ifndef _FZ_FILTER_H_
 #define _FZ_FILTER_H_
 
-#include <stdarg.h>
-#include "../types.h"
+#include "../freeztile.h"
 
-#define FZ_FILTER_OPT_NONE   0
-#define FZ_FILTER_OPT_USEENV (1 << 0)
+BEGIN_C_DECLS
+
+typedef struct fz_filter_s {
+    const fz_ptr_t   _class;
+    fz_int_t       (*filtrate)(struct fz_filter_s *self, fz_list_t *buffer);
+} fz_filter_t;
+
+const fz_ptr_t fz_filter;
 
 /**
  *
- * @param filter
- * @param samples
- * @return
+ * @param  fz_ptr_t             filter
+ * @param  fz_list_t<fz_amp_t> *buffer
+ * @return The number of filter samples or a negative error code
  */
-fz_uint_t   fz_filter_apply(
-                            fz_filter_t *filter,
-                            fz_list_t   *samples);
+fz_result_t fz_filtrate PARAMS((
+                                fz_ptr_t   filter,
+                                fz_list_t *buffer));
 
-const fz_ptr_t fz_filter;
-const fz_ptr_t fz_lowpass;
+END_C_DECLS
 
 #endif // _FZ_FILTER_H_
