@@ -29,9 +29,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include "filter.h"
-#include "freeztile.h"
-#include "util/list.h"
-#include "form.h"
+#include "../freeztile.h"
+#include "../util/list.h"
+#include "../form.h"
 
 // ### PRIVATE ###
 

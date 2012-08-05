@@ -30,7 +30,7 @@
 #define _FZ_FILTER_H_
 
 #include <stdarg.h>
-#include "types.h"
+#include "../types.h"
 
 #define FZ_FILTER_OPT_NONE   0
 #define FZ_FILTER_OPT_USEENV (1 << 0)
