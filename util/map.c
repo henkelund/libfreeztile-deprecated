@@ -45,8 +45,13 @@ _fz_map_construct(
     _self->type_size = type_size;
     _self->type_name =
             (fz_char_t*) malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
-    _self->size      = 0;
     _self->flags     = flags;
+
+    if (_self->flags & FZ_MAP_FLAG_ITERABLE) {
+        _self->iterator = fz_list_new(fz_map_item_t*);
+    } else {
+        _self->iterator = NULL;
+    }
 
     assert(_self->type_name);
     strcpy(_self->type_name, type_name);
@@ -78,6 +83,11 @@ _fz_map_destruct(fz_ptr_t self)
             fz_free(_self->table[i]);
         }
     }
+
+    if (_self->flags & FZ_MAP_FLAG_ITERABLE && _self->iterator != NULL) {
+        fz_free(_self->iterator);
+    }
+
     free(_self->type_name);
 
     return _self;
@@ -134,7 +144,9 @@ fz_map_set(
         assert(cell->value);
         cell->key   = ((fz_char_t*) cell->value) + map->type_size;
         strcpy(cell->key, key);
-        ++map->size;
+        if (map->flags & FZ_MAP_FLAG_ITERABLE && map->iterator != NULL) {
+            fz_list_append(map->iterator, &cell);
+        }
     }
 
     memcpy(cell->value, value, map->type_size);
@@ -173,7 +185,8 @@ fz_map_uns(
            fz_map_t        *map,
            const fz_char_t *key)
 {
-    fz_uint_t  i   = _fz_map_get_index(key);
+    fz_uint_t  i   = _fz_map_get_index(key),
+               j;
     fz_list_t *row = NULL;
 
     if (map->table[i] == NULL) {
@@ -189,7 +202,15 @@ fz_map_uns(
             free(fz_list_ref(row, i, fz_map_item_t)->value);
             // key is freed along with value
             fz_list_remove(row, i);
-            --map->size;
+            if (map->flags & FZ_MAP_FLAG_ITERABLE && map->iterator != NULL) {
+                for (j = 0; j < map->iterator->size; ++j) {
+                    if (strcmp(key, fz_list_val(
+                                map->iterator, j, fz_map_item_t*)->key) == 0) {
+                        fz_list_remove(map->iterator, j);
+                        break;
+                    }
+                }
+            }
             return FZ_RESULT_SUCCESS;
         }
     }

@@ -38,8 +38,9 @@ BEGIN_C_DECLS
 #define FZ_HASH_PRIME 193
 #endif
 
-#define FZ_MAP_FLAG_NONE    0
-#define FZ_MAP_FLAG_RETAIN (1 << 0)
+#define FZ_MAP_FLAG_NONE      0
+#define FZ_MAP_FLAG_RETAIN   (1 << 0)
+#define FZ_MAP_FLAG_ITERABLE (1 << 1)
 
 /**
  * Macro for map creation
@@ -83,14 +84,55 @@ BEGIN_C_DECLS
             ((type*) fz_map_get(map, key))
 
 /**
+ * Macro for map value retrieval by index (for iteratable maps)
+ *
+ * @param  fz_map_t  *map  Map to fetch from
+ * @param  fz_uint_t  i    Index of value to fetch
+ * @param  type       type Type of value
+ * @return type
+ */
+#define fz_map_ival(map, i, type) \
+            (*((type*) fz_list_val(map->iterator, i, fz_map_item_t*)->value))
+
+/**
+ * Macro for map value pointer retrieval by index (for iteratable maps)
+ *
+ * @param  fz_map_t  *map  Map to fetch from
+ * @param  fz_uint_t  i    Index of value to fetch
+ * @param  type       type Type of value
+ * @return type
+ */
+#define fz_map_iref(map, i, type) \
+            ((type*) fz_list_val(map->iterator, i, fz_map_item_t*)->value)
+
+/**
+ * Macro for map key retrieval by index (for iteratable maps)
+ *
+ * @param  fz_map_t   *map  Map to fetch from
+ * @param  fz_uint_t   i    Index of key to fetch
+ * @return const fz_char_t*
+ */
+#define fz_map_ikey(map, i) \
+            (fz_list_val(map->iterator, i, fz_map_item_t*)->key)
+
+/**
  * Macro for map key checking
  *
- * @param  fz_map_t  *map  Map to look in
- * @param  fz_char_t *key  Key to check for
+ * @param  fz_map_t  *map Map to look in
+ * @param  fz_char_t *key Key to check for
  * @return bool
  */
 #define fz_map_has(map, key) \
             (fz_map_get(map, key) != NULL)
+
+/**
+ * Macro for checking map size. Returns 0 for non-iteratable maps.
+ *
+ * @param  fz_map_t *map Map to measure
+ * @return int
+ */
+#define fz_map_size(map) \
+            (map->iterator != NULL ? map->iterator->size : 0)
 
 typedef struct {
     fz_char_t *key;
@@ -102,8 +144,8 @@ typedef struct {
     fz_list_t      *table[FZ_HASH_PRIME];
     fz_uint_t       type_size;
     fz_char_t      *type_name;
-    fz_uint_t       size;
     fz_flags_t      flags;
+    fz_list_t      *iterator;
 } fz_map_t;
 
 const fz_ptr_t fz_map;
