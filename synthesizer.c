@@ -47,6 +47,7 @@ _fz_synthesizer_construct(
     _self->active_notes     = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
     _self->sample_rate      = FZ_SAMPLE_RATE;
     _self->voice            = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
+    _self->envdesc          = fz_new(fz_envdesc);
     _self->flags            = FZ_NOTE_STEAL_POLICY_NOSTEAL;
 
     // Add an oscillator to the note voice with a sample form
@@ -87,6 +88,8 @@ _fz_synthesizer_construct(
     }
     fz_free(multicurve);
 
+    // Sample amplifier adsr
+    fz_envelope_set_adsr(_self->envdesc, 1., 44100, .4, 25000, .9, 40000, 50000);
     fz_synthesizer_set_polyphony(_self, FZ_POLYPHONY_LEVEL);
 
     return _self;
@@ -102,6 +105,7 @@ _fz_synthesizer_destruct(const fz_ptr_t self)
     fz_free(_self->note_pool);
     fz_free(_self->active_notes);
     fz_free(_self->voice);
+    fz_free(_self->envdesc);
 
     return _self;
 }
@@ -133,7 +137,7 @@ fz_synthesizer_output(
         return synth->ob;
     }
 
-    amp = 1.0/synth->active_notes->size ;
+    amp = 1.0/fz_synthesizer_get_polyphony(synth);
 
     for (i = 0; i < synth->active_notes->size; ++i) {
         note        = fz_list_val(synth->active_notes, i, fz_note_t*);
@@ -157,11 +161,16 @@ fz_synthesizer_set_polyphony(
                              fz_synthesizer_t *synth,
                              fz_uint_t         level)
 {
-    fz_uint_t current_level = fz_synthesizer_get_polyphony(synth);
+    fz_uint_t      current_level = fz_synthesizer_get_polyphony(synth);
+    fz_envelope_t *envelope;
 
     for (; current_level < level; ++current_level) {
         fz_list_append_release(synth->note_pool, fz_new(fz_note), note, fz_note_t*);
         note->voice = synth->voice;
+        envelope = fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
+        if (envelope != NULL) {
+            envelope->descriptor = fz_retain(synth->envdesc);
+        }
     }
 
     for (; current_level > level; --current_level) {
@@ -186,7 +195,8 @@ fz_synthesizer_play(
                     fz_synthesizer_t *synth,
                     fz_real_t         frequency)
 {
-    fz_note_t *note = NULL;
+    fz_note_t     *note = NULL;
+    fz_envelope_t *envelope;
 
     if (synth->note_pool->size > 0) {
 
@@ -219,6 +229,10 @@ fz_synthesizer_play(
     if (note != NULL) {
         note->freq      = frequency;
         note->is_active = TRUE;
+        envelope = fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
+        if (envelope != NULL) {
+            fz_envelope_attack(envelope);
+        }
         fz_list_append(synth->active_notes, &note);
         fz_free(note);
     }

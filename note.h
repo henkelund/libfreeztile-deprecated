@@ -30,6 +30,21 @@
 #define _FZ_NOTE_H_
 
 #include "types.h"
+#include "util/map.h"
+#include "filter/amplifier.h"
+
+#define FZ_AMPLIFIER_KEY "amplifier"
+
+typedef struct {
+    const fz_ptr_t  _scp;
+    fz_voice_t     *voice;
+    fz_list_t      *octxs;
+    fz_real_t       freq;
+    fz_bool_t       is_active;
+    fz_list_t      *buffer;
+    fz_map_t       *envelopes;
+    fz_map_t       *filters;
+} fz_note_t;
 
 /**
  *

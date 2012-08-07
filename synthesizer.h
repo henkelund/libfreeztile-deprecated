@@ -30,6 +30,7 @@
 #define _FZ_SYNTHESIZER_H_
 
 #include "types.h"
+#include "note.h"
 #include "util/list.h"
 
 #ifndef FZ_SAMPLE_RATE
@@ -52,6 +53,7 @@ typedef struct {
     fz_list_t/*<fz_note_t*>*/ *active_notes;
     fz_uint_t                  sample_rate;
     fz_voice_t                *voice;
+    fz_envdesc_t              *envdesc;
     fz_flags_t                 flags;
 } fz_synthesizer_t;
 

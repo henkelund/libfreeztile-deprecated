@@ -27,7 +27,7 @@
  */
 
 #ifndef _FZ_AMPLIFIER_H_
-#define	_FZ_AMPLIFIER_H_ 1
+#define _FZ_AMPLIFIER_H_ 1
 
 #include "../freeztile.h"
 #include "filter.h"

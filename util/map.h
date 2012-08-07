@@ -134,6 +134,23 @@ BEGIN_C_DECLS
 #define fz_map_size(map) \
             (map->iterator != NULL ? map->iterator->size : 0)
 
+/**
+ * Macro for giving value ownership to retaining object type maps
+ *
+ * @param  map
+ * @param  key
+ * @param  value
+ * @return FZ_RESULT_SUCCESS
+ */
+#define fz_map_set_noretain(map, key, value)       \
+            (map->flags & FZ_MAP_FLAG_RETAIN ?     \
+                map->flags &= ~FZ_MAP_FLAG_RETAIN, \
+                fz_map_set(map, key, value),       \
+                map->flags |= FZ_MAP_FLAG_RETAIN,  \
+                FZ_RESULT_SUCCESS                  \
+                :                                  \
+                fz_map_set(map, key, value))       \
+
 typedef struct {
     fz_char_t *key;
     fz_ptr_t   value;

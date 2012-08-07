@@ -50,6 +50,19 @@ _fz_note_construct(
     _self->voice     = NULL;
     _self->freq      = 0;
     _self->is_active = FALSE;
+    _self->buffer    = fz_list_new(fz_amp_t);
+    _self->envelopes = fz_map_new_flags(fz_envelope_t*,
+                                FZ_MAP_FLAG_RETAIN | FZ_MAP_FLAG_ITERABLE);
+    _self->filters   = fz_map_new_flags(fz_filter_t*,
+                                FZ_MAP_FLAG_RETAIN | FZ_MAP_FLAG_ITERABLE);
+
+    fz_envelope_t *env = fz_new(fz_envelope, NULL);
+    fz_map_set_noretain(_self->envelopes, FZ_AMPLIFIER_KEY, &env);
+
+    fz_amplifier_t *amp = fz_new(fz_amplifier);
+    ((fz_filter_t*) amp)->regulator = (fz_producer_t*) env;
+    fz_map_set_noretain(_self->filters, FZ_AMPLIFIER_KEY, &amp);
+
     return _self;
 }
 
@@ -63,6 +76,9 @@ _fz_note_destruct(fz_ptr_t self)
         fz_free(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
     }
     fz_free(_self->octxs);
+    fz_free(_self->buffer);
+    fz_free(_self->envelopes);
+    fz_free(_self->filters);
     // synthesizer is responsible for _self->voice
 
     return _self;
@@ -120,13 +136,24 @@ fz_note_apply(
         return result;
     } else if (note->freq > 0) {
 
+        fz_list_clear(note->buffer, output->size);
+
         for (i = 0; i < note->octxs->size; ++i) {
             ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
             ctx->amp         = amplitude;
             ctx->sample_rate = sample_rate;
             ctx->freq        = note->freq;
-            fz_list_clear(ctx->framebuf, output->size);
-            fz_oscillator_apply(ctx, output);
+            fz_list_clear(ctx->framebuf, note->buffer->size);
+            fz_oscillator_apply(ctx, note->buffer);
+        }
+
+        for (i = 0; i < fz_map_size(note->filters); ++i) {
+            fz_filtrate(fz_map_ival(note->filters, i, fz_filter_t*), note->buffer);
+        }
+
+        for (i = 0; i < output->size; ++i) {
+            fz_list_val(output, i, fz_amp_t) +=
+                    fz_list_val(note->buffer, i, fz_amp_t);
         }
     }
 

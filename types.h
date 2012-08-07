@@ -131,12 +131,4 @@ typedef struct {
 
 typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
 
-typedef struct {
-    const fz_ptr_t  _scp;
-    fz_voice_t     *voice;
-    fz_list_t      *octxs;
-    fz_real_t       freq;
-    fz_bool_t       is_active;
-} fz_note_t;
-
 #endif // _FZ_TYPES_H_
