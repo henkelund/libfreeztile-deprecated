@@ -75,8 +75,7 @@ _fz_envelope_produce(
     fz_uint_t      frame;
     fz_amp_t       amp;
 
-    if (_self->state == FZ_ENV_SILENT) {
-        fz_list_clear(buffer, buffer->size);
+    if (_self->state == FZ_ENV_SILENT || _self->descriptor == NULL) {
         return buffer->size;
     }
 
@@ -124,7 +123,7 @@ _fz_envelope_produce(
             }
         }
 
-        fz_list_val(buffer, i, fz_amp_t) =
+        fz_list_val(buffer, i, fz_amp_t) +=
                 fz_list_val(curve->template, frame, fz_amp_t);
 
         if (_self->state == FZ_ENV_RELEASE) {
@@ -155,8 +154,6 @@ _fz_envelope_construct(fz_ptr_t  self,
 
     if (_self->descriptor) {
         fz_retain(_self->descriptor);
-    } else {
-        _self->descriptor = fz_new(fz_envdesc);
     }
 
     ((fz_producer_t*) self)->produce = _fz_envelope_produce;
