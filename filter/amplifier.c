@@ -38,10 +38,10 @@ _fz_amplifier_filtrate(
     fz_amplifier_t *_self = (fz_amplifier_t*) self;
     fz_uint_t       i     = 0;
 
-    if (self->regulator && self->regbuf->size >= buffer->size) {
+    if (self->regulator != NULL) {
         for (; i < buffer->size; ++i) {
             fz_list_val(buffer, i, fz_amp_t) *=
-                    _self->level*fz_list_val(self->regbuf, i, fz_real_t);
+                    _self->level*fz_list_val(self->regulator, i, fz_real_t);
         }
     } else {
         for (; i < buffer->size; ++i) {

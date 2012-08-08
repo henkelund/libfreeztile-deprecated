@@ -69,11 +69,11 @@ BEGIN_C_DECLS
  * FreeZtile return values
  *
  */
-#define FZ_RESULT_SUCCESS          0
-#define FZ_RESULT_NOT_IMPLEMENTED -1
-#define FZ_RESULT_MALLOC_ERROR    -2
-#define FZ_RESULT_IOOB_ERROR      -3
-#define FZ_RESULT_INVALID_ARG     -4
+#define FZ_RESULT_SUCCESS         0
+#define FZ_RESULT_NOT_IMPLEMENTED 1
+#define FZ_RESULT_MALLOC_ERROR    2
+#define FZ_RESULT_IOOB_ERROR      3
+#define FZ_RESULT_INVALID_ARG     4
 
 /**
  *

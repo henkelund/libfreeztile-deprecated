@@ -37,8 +37,7 @@ BEGIN_C_DECLS
 typedef struct fz_filter_s {
     const fz_ptr_t   _class;
     fz_int_t       (*filtrate)(struct fz_filter_s *self, fz_list_t *buffer);
-    fz_producer_t   *regulator;
-    fz_list_t       *regbuf;
+    fz_list_t       *regulator;
 } fz_filter_t;
 
 const fz_ptr_t fz_filter;

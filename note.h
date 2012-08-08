@@ -41,8 +41,9 @@ typedef struct {
     fz_list_t      *octxs;
     fz_real_t       freq;
     fz_bool_t       is_active;
-    fz_list_t      *buffer;
+    fz_list_t      *ob;
     fz_map_t       *envelopes;
+    fz_list_t      *env_ob;
     fz_map_t       *filters;
 } fz_note_t;
 
