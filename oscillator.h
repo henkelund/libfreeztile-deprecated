@@ -39,11 +39,12 @@ typedef struct {
 } fz_oscdesc_t;
 
 typedef struct {
-    fz_oscdesc_t *descriptor;
-    fz_frame_t    frame;
-    fz_list_t    *framebuf;
-    fz_real_t     freq;
-    fz_uint_t     sample_rate;
+    const fz_ptr_t  _class;
+    fz_oscdesc_t   *descriptor;
+    fz_frame_t      frame;
+    fz_list_t      *framebuf;
+    fz_real_t       freq;
+    fz_uint_t       sample_rate;
 } fz_oscillator_t;
 
 /**
@@ -57,5 +58,6 @@ fz_result_t fz_oscillator_apply(
                                 fz_list_t       *samples);
 
 const fz_ptr_t fz_oscdesc;
+const fz_ptr_t fz_oscillator;
 
 #endif // _FZ_OSCILLATOR_H_

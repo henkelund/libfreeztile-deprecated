@@ -57,6 +57,31 @@ _fz_oscdesc_destruct(fz_ptr_t self)
     return _self;
 }
 
+static
+fz_ptr_t
+_fz_oscillator_construct(
+                         const fz_ptr_t  self,
+                         va_list        *args)
+{
+    (void) args;
+    fz_oscillator_t *_self = (fz_oscillator_t*) self;
+    _self->descriptor      = NULL;
+    _self->frame           = 0;
+    _self->framebuf        = fz_list_new(fz_frame_t);
+    _self->freq            = 0;
+    _self->sample_rate     = 0;
+    return _self;
+}
+
+static
+fz_ptr_t
+_fz_oscillator_destruct(fz_ptr_t self)
+{
+    fz_oscillator_t *_self = (fz_oscillator_t*) self;
+    fz_release(_self->framebuf);
+    return _self;
+}
+
 static const fz_object_t _fz_oscdesc = {
     sizeof (fz_oscdesc_t),
     _fz_oscdesc_construct,
@@ -65,9 +90,18 @@ static const fz_object_t _fz_oscdesc = {
     NULL
 };
 
+static const fz_object_t _fz_oscillator = {
+    sizeof (fz_oscillator_t),
+    _fz_oscillator_construct,
+    _fz_oscillator_destruct,
+    NULL,
+    NULL
+};
+
 // ### PUBLIC ###
 
-const fz_ptr_t fz_oscdesc = (const fz_ptr_t) &_fz_oscdesc;
+const fz_ptr_t fz_oscdesc    = (const fz_ptr_t) &_fz_oscdesc;
+const fz_ptr_t fz_oscillator = (const fz_ptr_t) &_fz_oscillator;
 
 fz_result_t
 fz_oscillator_apply(
