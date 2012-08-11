@@ -100,21 +100,6 @@ typedef struct {
 } fz_form_t;
 
 typedef struct {
-    const fz_ptr_t  _scp;
-    fz_form_t      *form;
-    fz_amp_t        amp;
-    fz_real_t       phase;
-} fz_osc_t;
-
-typedef struct {
-    fz_osc_t   *osc;
-    fz_frame_t  frame;
-    fz_list_t  *framebuf;
-    fz_real_t   freq;
-    fz_uint_t   sample_rate;
-} fz_octx_t;
-
-typedef struct {
     fz_amp_t    start;
     fz_amp_t    end;
     fz_pointf_t a;
@@ -127,7 +112,5 @@ typedef struct {
     fz_curve_t  curve;
     fz_float_t  share;
 } fz_mccurve_t;
-
-typedef fz_list_t/*<fz_osc_t*>*/ fz_voice_t;
 
 #endif // _FZ_TYPES_H_

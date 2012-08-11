@@ -45,16 +45,16 @@ _fz_note_construct(
                    va_list        *args)
 {
     (void) args;
-    fz_note_t *_self = (fz_note_t*) self;
-    _self->octxs     = fz_list_new(fz_octx_t);
-    _self->voice     = NULL;
-    _self->freq      = 0;
-    _self->flags     = FZ_NOTE_FLAG_NONE;
-    _self->ob        = fz_list_new(fz_amp_t);
-    _self->envelopes = fz_map_new_flags(fz_envelope_t*,
+    fz_note_t *_self   = (fz_note_t*) self;
+    _self->oscillators = fz_list_new(fz_oscillator_t);
+    _self->voice       = NULL;
+    _self->freq        = 0;
+    _self->flags       = FZ_NOTE_FLAG_NONE;
+    _self->ob          = fz_list_new(fz_amp_t);
+    _self->envelopes   = fz_map_new_flags(fz_envelope_t*,
                                 FZ_MAP_FLAG_RETAIN | FZ_MAP_FLAG_ITERABLE);
-    _self->env_ob    = fz_list_new(fz_amp_t);
-    _self->filters   = fz_map_new_flags(fz_filter_t*,
+    _self->env_ob      = fz_list_new(fz_amp_t);
+    _self->filters     = fz_map_new_flags(fz_filter_t*,
                                 FZ_MAP_FLAG_RETAIN | FZ_MAP_FLAG_ITERABLE);
 
     fz_envelope_t *env = fz_new(fz_envelope, NULL);
@@ -72,10 +72,10 @@ _fz_note_destruct(fz_ptr_t self)
 {
     fz_note_t *_self = (fz_note_t*) self;
     fz_uint_t i;
-    for (i = 0; i < _self->octxs->size; ++i) {
-        fz_release(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
+    for (i = 0; i < _self->oscillators->size; ++i) {
+        fz_release(fz_list_ref(_self->oscillators, i, fz_oscillator_t)->framebuf);
     }
-    fz_release(_self->octxs);
+    fz_release(_self->oscillators);
     fz_release(_self->ob);
     fz_release(_self->envelopes);
     fz_release(_self->env_ob);
@@ -85,11 +85,11 @@ _fz_note_destruct(fz_ptr_t self)
     return _self;
 }
 
-static fz_octx_t _fz_default_octx = {
-    .osc      = NULL,
-    .frame    = 0,
-    .framebuf = NULL,
-    .freq     = 0
+static fz_oscillator_t _fz_default_oscillator = {
+    .descriptor = NULL,
+    .frame      = 0,
+    .framebuf   = NULL,
+    .freq       = 0
 };
 
 static
@@ -98,13 +98,13 @@ _fz_note_sync(fz_note_t *note)
 {
     fz_uint_t i;
     for (i = 0; i < note->voice->size; ++i) {
-        if (i == note->octxs->size) {
-            fz_list_append(note->octxs, &_fz_default_octx);
-            fz_list_ref(note->octxs, i, fz_octx_t)->framebuf =
+        if (i == note->oscillators->size) {
+            fz_list_append(note->oscillators, &_fz_default_oscillator);
+            fz_list_ref(note->oscillators, i, fz_oscillator_t)->framebuf =
                     fz_list_new(fz_frame_t);
         }
-        fz_list_ref(note->octxs, i, fz_octx_t)->osc =
-                fz_list_val(note->voice, i, fz_osc_t*);
+        fz_list_ref(note->oscillators, i, fz_oscillator_t)->descriptor =
+                                        fz_list_val(note->voice, i, fz_oscdesc_t*);
     }
     return FZ_RESULT_SUCCESS;
 }
@@ -127,11 +127,11 @@ fz_note_apply(
               fz_list_t *output,
               fz_uint_t  sample_rate)
 {
-    fz_octx_t     *ctx;
-    fz_uint_t      i;
-    fz_envelope_t *envelope;
-    fz_filter_t   *filter;
-    fz_result_t    result = FZ_RESULT_SUCCESS;
+    fz_oscillator_t *oscillator;
+    fz_uint_t        i;
+    fz_envelope_t   *envelope;
+    fz_filter_t     *filter;
+    fz_result_t      result = FZ_RESULT_SUCCESS;
 
     if (note->voice && (result = _fz_note_sync(note)) != FZ_RESULT_SUCCESS) {
         return result;
@@ -139,12 +139,13 @@ fz_note_apply(
 
         fz_list_clear(note->ob, output->size);
 
-        for (i = 0; i < note->octxs->size; ++i) {
-            ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
-            ctx->sample_rate = sample_rate;
-            ctx->freq        = note->freq;
-            fz_list_clear(ctx->framebuf, note->ob->size);
-            fz_oscillator_apply(ctx, note->ob);
+        for (i = 0; i < note->oscillators->size; ++i) {
+            oscillator              = fz_list_ref(
+                                            note->oscillators, i, fz_oscillator_t);
+            oscillator->sample_rate = sample_rate;
+            oscillator->freq        = note->freq;
+            fz_list_clear(oscillator->framebuf, note->ob->size);
+            fz_oscillator_apply(oscillator, note->ob);
         }
 
         for (i = 0; i < fz_map_size(note->filters); ++i) {

@@ -36,12 +36,12 @@
 
 static
 fz_ptr_t
-_fz_osc_construct(
+_fz_oscdesc_construct(
                   const fz_ptr_t  self,
                   va_list        *args)
 {
     (void) args;
-    fz_osc_t *_self     = (fz_osc_t*) self;
+    fz_oscdesc_t *_self = (fz_oscdesc_t*) self;
     _self->form         = fz_new(fz_form);
     _self->amp          = 1;
     _self->phase        = 0;
@@ -50,62 +50,63 @@ _fz_osc_construct(
 
 static
 fz_ptr_t
-_fz_osc_destruct(fz_ptr_t self)
+_fz_oscdesc_destruct(fz_ptr_t self)
 {
-    fz_osc_t *_self = (fz_osc_t*) self;
+    fz_oscdesc_t *_self = (fz_oscdesc_t*) self;
     fz_release(_self->form);
     return _self;
 }
 
-static const fz_object_t _fz_osc = {
-    sizeof (fz_osc_t),
-    _fz_osc_construct,
-    _fz_osc_destruct,
+static const fz_object_t _fz_oscdesc = {
+    sizeof (fz_oscdesc_t),
+    _fz_oscdesc_construct,
+    _fz_oscdesc_destruct,
     NULL,
     NULL
 };
 
 // ### PUBLIC ###
 
-const fz_ptr_t fz_osc = (const fz_ptr_t) &_fz_osc;
+const fz_ptr_t fz_oscdesc = (const fz_ptr_t) &_fz_oscdesc;
 
 fz_result_t
 fz_oscillator_apply(
-                    fz_octx_t *ctx,
-                    fz_list_t *samples)
+                    fz_oscillator_t *oscillator,
+                    fz_list_t       *samples)
 {
     fz_result_t result = FZ_RESULT_SUCCESS;
     fz_uint_t   i;
     fz_float_t  step_size;
     fz_real_t   frame;
 
-    if (!fz_list_type(samples, fz_amp_t) || ctx->osc == NULL) {
+    if (!fz_list_type(samples, fz_amp_t) || oscillator->descriptor == NULL) {
         return FZ_RESULT_INVALID_ARG;
     }
 
     // sample rate divided by frequeny gives number of samples per period
-    step_size = 1.f/(ctx->sample_rate/ctx->freq);
+    step_size = 1.f/(oscillator->sample_rate/oscillator->freq);
 
     // fill the frame progress buffer
     for (i = 0; i < samples->size; ++i) {
-        frame = ctx->frame + ctx->osc->phase;
+        frame = oscillator->frame + oscillator->descriptor->phase;
         while (frame >= 1) {
             frame -= 1;
         }
-        fz_list_val(ctx->framebuf, i, fz_frame_t) = frame;
-        ctx->frame += step_size;
-        while (ctx->frame >= 1) {
-            ctx->frame -= 1;
+        fz_list_val(oscillator->framebuf, i, fz_frame_t) = frame;
+        oscillator->frame += step_size;
+        while (oscillator->frame >= 1) {
+            oscillator->frame -= 1;
         }
     }
 
-    result = fz_form_apply(ctx->osc->form, ctx->framebuf, samples);
+    result = fz_form_apply(
+                oscillator->descriptor->form, oscillator->framebuf, samples);
     if (result != FZ_RESULT_SUCCESS) {
         return result;
     }
 
     for (i = 0; i < samples->size; ++i) {
-        fz_list_val(samples, i, fz_amp_t) *= ctx->osc->amp;
+        fz_list_val(samples, i, fz_amp_t) *= oscillator->descriptor->amp;
     }
 
     return result;

@@ -38,10 +38,12 @@
 #define FZ_NOTE_FLAG_NONE    0
 #define FZ_NOTE_FLAG_ACTIVE (1 << 0)
 
+typedef fz_list_t/*<fz_oscdesc_t*>*/ fz_voice_t;
+
 typedef struct {
     const fz_ptr_t  _scp;
     fz_voice_t     *voice;
-    fz_list_t      *octxs;
+    fz_list_t      *oscillators;
     fz_real_t       freq;
     fz_flags_t      flags;
     fz_list_t      *ob;

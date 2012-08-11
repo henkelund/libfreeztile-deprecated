@@ -46,12 +46,12 @@ _fz_synthesizer_construct(
     _self->note_pool        = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
     _self->active_notes     = fz_list_new_flags(fz_note_t*, FZ_LIST_FLAG_RETAIN);
     _self->sample_rate      = FZ_SAMPLE_RATE;
-    _self->voice            = fz_list_new_flags(fz_osc_t*, FZ_LIST_FLAG_RETAIN);
+    _self->voice            = fz_list_new_flags(fz_oscdesc_t*, FZ_LIST_FLAG_RETAIN);
     _self->envdesc          = fz_new(fz_envdesc);
     _self->flags            = FZ_NOTE_STEAL_POLICY_NOSTEAL;
 
     // Add an oscillator to the note voice with a sample form
-    fz_list_append_release(_self->voice, fz_new(fz_osc), osc, fz_osc_t*);
+    fz_list_append_release(_self->voice, fz_new(fz_oscdesc), osc, fz_oscdesc_t*);
     fz_list_t *multicurve = fz_list_new(fz_mccurve_t);
     fz_mccurve_t mccurve = {
       .form  = NULL,
