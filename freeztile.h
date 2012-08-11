@@ -80,13 +80,13 @@ BEGIN_C_DECLS
  * @param  fz_size_t size
  * @return fz_ptr_t
  */
-fz_ptr_t    fz_malloc(fz_size_t size);
+fz_ptr_t    fz_malloc PARAMS((fz_size_t size));
 
 /**
  *
  * @param  fz_ptr_t ptr
  */
-void        fz_free(fz_ptr_t ptr);
+void        fz_free PARAMS((fz_ptr_t ptr));
 
 /**
  *

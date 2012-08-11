@@ -60,6 +60,7 @@ fz_malloc(fz_size_t size)
     fz_malloc_meta_t *meta =
             (fz_malloc_meta_t*) malloc(sizeof (fz_malloc_meta_t) + size);
     assert(meta);
+    memset(meta + 1, 0, size);
     meta->id   = 0;
     meta->size = sizeof (fz_malloc_meta_t) + size;
     meta->id   = _fz_meminfo.id_counter++;
@@ -75,6 +76,7 @@ fz_malloc(fz_size_t size)
 #else
     fz_ptr_t ptr = (fz_ptr_t) malloc(size);
     assert(ptr);
+    memset(ptr, 0, size);
     return ptr;
 #endif // defined FZ_DEBUG && FZ_DEBUG == 1
 }
