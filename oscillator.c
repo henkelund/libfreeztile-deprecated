@@ -78,7 +78,6 @@ fz_oscillator_apply(
     fz_uint_t   i;
     fz_float_t  step_size;
     fz_real_t   frame;
-    fz_amp_t    amp;
 
     if (!fz_list_type(samples, fz_amp_t) || ctx->osc == NULL) {
         return FZ_RESULT_INVALID_ARG;
@@ -105,9 +104,8 @@ fz_oscillator_apply(
         return result;
     }
 
-    amp = ctx->amp * ctx->osc->amp;
     for (i = 0; i < samples->size; ++i) {
-        fz_list_val(samples, i, fz_amp_t) *= amp;
+        fz_list_val(samples, i, fz_amp_t) *= ctx->osc->amp;
     }
 
     return result;

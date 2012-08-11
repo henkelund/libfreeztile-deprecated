@@ -129,7 +129,6 @@ fz_synthesizer_output(
 {
     fz_size_t  i;
     fz_note_t *note;
-    fz_amp_t   amp;
 
     fz_list_clear(synth->ob, num_frames);
 
@@ -137,12 +136,10 @@ fz_synthesizer_output(
         return synth->ob;
     }
 
-    amp = 1.0/fz_synthesizer_get_polyphony(synth);
-
     for (i = 0; i < synth->active_notes->size; ++i) {
         note        = fz_list_val(synth->active_notes, i, fz_note_t*);
         note->voice = synth->voice;
-        fz_note_apply(note, synth->ob, amp, synth->sample_rate);
+        fz_note_apply(note, synth->ob, synth->sample_rate);
 
         // Put back in pool if done playing
         if (!fz_note_is_active(note)) {

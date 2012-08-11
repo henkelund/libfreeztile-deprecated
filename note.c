@@ -89,8 +89,7 @@ static fz_octx_t _fz_default_octx = {
     .osc      = NULL,
     .frame    = 0,
     .framebuf = NULL,
-    .freq     = 0,
-    .amp      = 1
+    .freq     = 0
 };
 
 static
@@ -126,7 +125,6 @@ fz_result_t
 fz_note_apply(
               fz_note_t *note,
               fz_list_t *output,
-              fz_amp_t   amplitude,
               fz_uint_t  sample_rate)
 {
     fz_octx_t     *ctx;
@@ -143,7 +141,6 @@ fz_note_apply(
 
         for (i = 0; i < note->octxs->size; ++i) {
             ctx              = fz_list_ref(note->octxs, i, fz_octx_t);
-            ctx->amp         = amplitude;
             ctx->sample_rate = sample_rate;
             ctx->freq        = note->freq;
             fz_list_clear(ctx->framebuf, note->ob->size);

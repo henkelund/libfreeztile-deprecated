@@ -111,7 +111,6 @@ typedef struct {
     fz_frame_t  frame;
     fz_list_t  *framebuf;
     fz_real_t   freq;
-    fz_amp_t    amp;
     fz_uint_t   sample_rate;
 } fz_octx_t;
 

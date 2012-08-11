@@ -52,14 +52,14 @@ typedef struct {
 
 /**
  *
- * @param  note
- * @param  samples
+ * @param  fz_note_t *note
+ * @param  fz_list_t *output
+ * @param  fz_uint_t  sample_rate
  * @return fz_uint_t
  */
 fz_result_t fz_note_apply(
                           fz_note_t *note,
                           fz_list_t *output,
-                          fz_amp_t   amplitude,
                           fz_uint_t  sample_rate);
 
 /**
