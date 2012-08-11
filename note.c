@@ -49,7 +49,7 @@ _fz_note_construct(
     _self->octxs     = fz_list_new(fz_octx_t);
     _self->voice     = NULL;
     _self->freq      = 0;
-    _self->is_active = FALSE;
+    _self->flags     = FZ_NOTE_FLAG_NONE;
     _self->ob        = fz_list_new(fz_amp_t);
     _self->envelopes = fz_map_new_flags(fz_envelope_t*,
                                 FZ_MAP_FLAG_RETAIN | FZ_MAP_FLAG_ITERABLE);
@@ -227,6 +227,52 @@ fz_note_parse_frequency(const fz_char_t *name)
 fz_bool_t
 fz_note_is_active(fz_note_t *note)
 {
-    // This is a temp implementation until ADSR is in place
-    return note->is_active;
+    fz_envelope_t *envelope = fz_map_get(note->envelopes, FZ_AMPLIFIER_KEY);
+    if (envelope) {
+        if (envelope->state == FZ_ENV_SILENT) {
+            note->flags &= ~FZ_NOTE_FLAG_ACTIVE;
+            return FALSE;
+        }
+        note->flags |= FZ_NOTE_FLAG_ACTIVE;
+        return TRUE;
+    }
+    return (note->flags & FZ_NOTE_FLAG_ACTIVE) ? TRUE : FALSE;
+}
+
+fz_result_t
+fz_note_start(
+              fz_note_t *note,
+              fz_amp_t   amplitude)
+{
+    fz_amplifier_t *amplifier =
+            fz_map_val(note->filters, FZ_AMPLIFIER_KEY, fz_amplifier_t*);
+    fz_envelope_t  *envelope  =
+            fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
+
+    if (amplifier != NULL) {
+        amplifier->level = amplitude;
+    }
+
+    if (envelope != NULL) {
+        fz_envelope_attack(envelope);
+    }
+
+    note->flags |= FZ_NOTE_FLAG_ACTIVE;
+
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_note_stop(fz_note_t *note)
+{
+    fz_envelope_t *envelope =
+            fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
+    if (envelope != NULL && envelope->state != FZ_ENV_SILENT) {
+        if (envelope->state != FZ_ENV_RELEASE) {
+            fz_envelope_release(envelope);
+        }
+    } else {
+        note->flags &= ~FZ_NOTE_FLAG_ACTIVE;
+    }
+    return FZ_RESULT_SUCCESS;
 }

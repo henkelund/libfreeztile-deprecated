@@ -193,10 +193,10 @@ fz_synthesizer_get_polyphony(fz_synthesizer_t *synth)
 fz_note_t*
 fz_synthesizer_play(
                     fz_synthesizer_t *synth,
-                    fz_real_t         frequency)
+                    fz_real_t         frequency,
+                    fz_amp_t          amplitude)
 {
-    fz_note_t     *note = NULL;
-    fz_envelope_t *envelope;
+    fz_note_t *note = NULL;
 
     if (synth->note_pool->size > 0) {
 
@@ -222,17 +222,13 @@ fz_synthesizer_play(
             fz_synthesizer_set_polyphony(
                     synth, fz_synthesizer_get_polyphony(synth) + 1);
 
-            return fz_synthesizer_play(synth, frequency);
+            return fz_synthesizer_play(synth, frequency, amplitude);
         }
     }
 
     if (note != NULL) {
-        note->freq      = frequency;
-        note->is_active = TRUE;
-        envelope = fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
-        if (envelope != NULL) {
-            fz_envelope_attack(envelope);
-        }
+        note->freq = frequency;
+        fz_note_start(note, amplitude);
         fz_list_append(synth->active_notes, &note);
         fz_free(note);
     }

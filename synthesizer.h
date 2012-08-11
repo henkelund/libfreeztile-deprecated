@@ -85,12 +85,14 @@ fz_synthesizer_get_polyphony(fz_synthesizer_t *synth);
  *
  * @param  fz_synthesizer_t *synth
  * @param  fz_real_t         frequency
+ * @param  fz_amp_t          amplitude
  * @return fz_note_t*
  */
 fz_note_t*
 fz_synthesizer_play(
                     fz_synthesizer_t *synth,
-                    fz_real_t         frequency);
+                    fz_real_t         frequency,
+                    fz_amp_t          amplitude);
 
 const fz_ptr_t fz_synthesizer;
 

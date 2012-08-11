@@ -35,12 +35,15 @@
 
 #define FZ_AMPLIFIER_KEY "amplifier"
 
+#define FZ_NOTE_FLAG_NONE    0
+#define FZ_NOTE_FLAG_ACTIVE (1 << 0)
+
 typedef struct {
     const fz_ptr_t  _scp;
     fz_voice_t     *voice;
     fz_list_t      *octxs;
     fz_real_t       freq;
-    fz_bool_t       is_active;
+    fz_flags_t      flags;
     fz_list_t      *ob;
     fz_map_t       *envelopes;
     fz_list_t      *env_ob;
@@ -65,16 +68,31 @@ fz_result_t fz_note_apply(
  * @param  const fz_char_t* name
  * @return fz_real_t
  */
-fz_real_t
-fz_note_parse_frequency(const fz_char_t *name);
+fz_real_t   fz_note_parse_frequency(const fz_char_t *name);
 
 /**
  *
  * @param  fz_note_t* note
  * @return fz_bool_t
  */
-fz_bool_t
-fz_note_is_active(fz_note_t *note);
+fz_bool_t   fz_note_is_active(fz_note_t *note);
+
+/**
+ *
+ * @param  fz_note_t   *note
+ * @param  fz_amp_t     amplitude
+ * @return fz_result_t
+ */
+fz_result_t fz_note_start(
+                          fz_note_t *note,
+                          fz_amp_t   amplitude);
+
+/**
+ *
+ * @param  fz_note_t   *note
+ * @return fz_result_t
+ */
+fz_result_t fz_note_stop(fz_note_t *note);
 
 const fz_ptr_t fz_note;
 

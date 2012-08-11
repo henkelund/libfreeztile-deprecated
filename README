@@ -3,23 +3,32 @@ Usage sample
 puts("Start up");
 fz_synthesizer_t      *synth   = fz_new(fz_synthesizer);
 fz_playback_adapter_t *adapter = fz_new(fz_playback_alsa, synth, 4096);
+fz_note_t             *c, *e, *bb;
 fz_playback_adapter_start(adapter);
 
 puts("Play C");
 fz_playback_adapter_lock(adapter);
-fz_synthesizer_play(synth, fz_note_parse_frequency("C5"));
+c = fz_synthesizer_play(synth, fz_note_parse_frequency("C5"), 1.);
 fz_playback_adapter_unlock(adapter);
 sleep(1);
 
 puts("Play E");
 fz_playback_adapter_lock(adapter);
-fz_synthesizer_play(synth, fz_note_parse_frequency("E5"));
+e = fz_synthesizer_play(synth, fz_note_parse_frequency("E5"), 1.);
 fz_playback_adapter_unlock(adapter);
 sleep(1);
 
 puts("Play Bb");
 fz_playback_adapter_lock(adapter);
-fz_synthesizer_play(synth, fz_note_parse_frequency("Bb5"));
+bb = fz_synthesizer_play(synth, fz_note_parse_frequency("Bb5"), 1.);
+fz_playback_adapter_unlock(adapter);
+sleep(1);
+
+puts("Release");
+fz_playback_adapter_lock(adapter);
+fz_note_stop(c);
+fz_note_stop(e);
+fz_note_stop(bb);
 fz_playback_adapter_unlock(adapter);
 sleep(1);
 
@@ -27,3 +36,4 @@ puts("Shut down");
 fz_playback_adapter_stop(adapter);
 fz_free(adapter);
 fz_free(synth);
+
