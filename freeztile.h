@@ -77,6 +77,19 @@ BEGIN_C_DECLS
 
 /**
  *
+ * @param  fz_size_t size
+ * @return fz_ptr_t
+ */
+fz_ptr_t    fz_malloc(fz_size_t size);
+
+/**
+ *
+ * @param  fz_ptr_t ptr
+ */
+void        fz_free(fz_ptr_t ptr);
+
+/**
+ *
  * @param  fz_ptr_t type
  * @param  ...
  * @return fz_ptr_t New object of given type

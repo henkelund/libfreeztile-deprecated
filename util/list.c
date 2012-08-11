@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 #include "list.h"
 #include "../freeztile.h"
 
@@ -47,8 +46,7 @@ _fz_list_construct(
     fz_flags_t       flags     = va_arg(*args, fz_flags_t);
 
     _self->type_name =
-            (fz_char_t*) malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
-    assert(_self->type_name);
+            (fz_char_t*) fz_malloc(sizeof(fz_char_t)*(strlen(type_name) + 1));
     strcpy(_self->type_name, type_name);
     _self->items      = NULL;
     _self->type_size  = type_size;
@@ -77,9 +75,9 @@ _fz_list_destruct(fz_ptr_t self)
     }
     // free item storage
     if (_self->items != NULL) {
-        free(_self->items);
+        fz_free(_self->items);
     }
-    free(_self->type_name);
+    fz_free(_self->type_name);
     _self->type_name = NULL;
     return _self;
 }
@@ -130,13 +128,13 @@ fz_list_grow(
     if (min_size > list->avail_size) {
         malloc_size = min_size < 10 ? 10 :
             (fz_uint_t) pow(2, ceil(log(min_size)/log(2)));
-        items = malloc(malloc_size*list->type_size);
+        items = fz_malloc(malloc_size*list->type_size);
         if (items == NULL) {
             return FZ_RESULT_MALLOC_ERROR;
         }
         if (list->items != NULL) {
             memcpy(items, list->items, list->size*list->type_size);
-            free(list->items);
+            fz_free(list->items);
         }
         list->items = items;
         list->avail_size = malloc_size;

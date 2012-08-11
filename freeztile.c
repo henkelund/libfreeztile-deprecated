@@ -34,16 +34,78 @@
 #include <inttypes.h>
 #include "freeztile.h"
 
-FZ_IF_DEBUG( static fz_int_t _fz_obj_count = 0; )
+#if defined FZ_DEBUG && FZ_DEBUG == 1
+typedef struct {
+    fz_uint_t id_counter;
+    fz_size_t malloc_count;
+    fz_size_t malloc_size;
+} fz_meminfo_t;
+
+static fz_meminfo_t _fz_meminfo = {
+  .id_counter   = 0,
+  .malloc_count = 0,
+  .malloc_size  = 0
+};
+
+typedef struct {
+    fz_uint_t id;
+    fz_size_t size;
+} fz_malloc_meta_t;
+#endif // defined FZ_DEBUG && FZ_DEBUG == 1
+
+fz_ptr_t
+fz_malloc(fz_size_t size)
+{
+#if defined FZ_DEBUG && FZ_DEBUG == 1
+    fz_malloc_meta_t *meta =
+            (fz_malloc_meta_t*) malloc(sizeof (fz_malloc_meta_t) + size);
+    assert(meta);
+    meta->id   = 0;
+    meta->size = sizeof (fz_malloc_meta_t) + size;
+    meta->id   = _fz_meminfo.id_counter++;
+    ++_fz_meminfo.malloc_count;
+    _fz_meminfo.malloc_size += meta->size;
+    fzdebug(
+            "\t+ #%u (%uB) - %upc (%uB)\n",
+            meta->id,
+            (unsigned int) meta->size,
+            (unsigned int) _fz_meminfo.malloc_count,
+            (unsigned int) _fz_meminfo.malloc_size);
+    return (fz_ptr_t) (meta + 1);
+#else
+    fz_ptr_t ptr = (fz_ptr_t) malloc(size);
+    assert(ptr);
+    return ptr;
+#endif // defined FZ_DEBUG && FZ_DEBUG == 1
+}
+
+void
+fz_free(fz_ptr_t ptr)
+{
+#if defined FZ_DEBUG && FZ_DEBUG == 1
+    fz_malloc_meta_t *meta = ((fz_malloc_meta_t*) ptr) - 1;
+    --_fz_meminfo.malloc_count;
+    _fz_meminfo.malloc_size -= meta->size;
+    fzdebug(
+            "\t- #%u (%uB) - %upc (%uB)\n",
+            meta->id,
+            (unsigned int) meta->size,
+            (unsigned int) _fz_meminfo.malloc_count,
+            (unsigned int) _fz_meminfo.malloc_size);
+    free(meta);
+#else
+    free(ptr);
+#endif // defined FZ_DEBUG && FZ_DEBUG == 1
+}
 
 fz_ptr_t
 fz_new(const fz_ptr_t type, ...)
 {
     const fz_object_t *_type  = (const fz_object_t*) type;
-    fz_int_t          *refcnt = (fz_int_t*) malloc(sizeof (fz_int_t) + _type->size);
+    fz_int_t          *refcnt =
+                            (fz_int_t*) fz_malloc(sizeof (fz_int_t) + _type->size);
     fz_ptr_t           self   = (fz_ptr_t) (refcnt + 1);
 
-    assert(self);
     *refcnt = 1;
 
     // put a type ref at top of self
@@ -54,7 +116,6 @@ fz_new(const fz_ptr_t type, ...)
         self = _type->construct(self, &ap);
         va_end(ap);
     }
-    FZ_IF_DEBUG( ++_fz_obj_count; )
     return self;
 }
 
@@ -76,8 +137,7 @@ fz_release(fz_ptr_t self)
         if (self && *type && (*type)->destruct) {
             self = (*type)->destruct(self);
         }
-        free(refcnt);
-        fzdebug("%d objects (-)\n", --_fz_obj_count);
+        fz_free(refcnt);
     }
 }
 
