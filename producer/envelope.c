@@ -57,7 +57,7 @@ _fz_envdesc_destruct(fz_ptr_t self)
 
     fz_uint_t i = 0;
     for (; i < 4; ++i) {
-        fz_free(_self->forms[i]);
+        fz_release(_self->forms[i]);
     }
 
     return _self;
@@ -167,7 +167,7 @@ _fz_envelope_destruct(fz_ptr_t self)
 {
     fz_envelope_t *_self = (fz_envelope_t*) self;
     if (_self->descriptor != NULL) {
-        fz_free(_self->descriptor);
+        fz_release(_self->descriptor);
     }
     return _self;
 }

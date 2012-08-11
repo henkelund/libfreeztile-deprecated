@@ -73,13 +73,13 @@ _fz_note_destruct(fz_ptr_t self)
     fz_note_t *_self = (fz_note_t*) self;
     fz_uint_t i;
     for (i = 0; i < _self->octxs->size; ++i) {
-        fz_free(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
+        fz_release(fz_list_ref(_self->octxs, i, fz_octx_t)->framebuf);
     }
-    fz_free(_self->octxs);
-    fz_free(_self->ob);
-    fz_free(_self->envelopes);
-    fz_free(_self->env_ob);
-    fz_free(_self->filters);
+    fz_release(_self->octxs);
+    fz_release(_self->ob);
+    fz_release(_self->envelopes);
+    fz_release(_self->env_ob);
+    fz_release(_self->filters);
     // synthesizer is responsible for _self->voice
 
     return _self;

@@ -99,7 +99,7 @@
 #define fz_list_insert_release(list, item, pos, capture, type) \
             type capture = item; fz_uint_t capture ## _pos = pos; \
             capture = (fz_list_insert(list, &capture, pos) == FZ_RESULT_SUCCESS ? \
-                (fz_free(capture), fz_list_val(list, capture ## _pos, type)) : NULL)
+                (fz_release(capture), fz_list_val(list, capture ## _pos, type)) : NULL)
 
 /**
  * Helper macro for giving item ownership to retaining object type lists
@@ -113,7 +113,7 @@
 #define fz_list_append_release(list, item, capture, type) \
             type capture = item; \
             capture = (fz_list_insert(list, &capture, list->size) == FZ_RESULT_SUCCESS ? \
-                (fz_free(capture), fz_list_val(list, list->size - 1, type)) : NULL)
+                (fz_release(capture), fz_list_val(list, list->size - 1, type)) : NULL)
 
 /**
  *

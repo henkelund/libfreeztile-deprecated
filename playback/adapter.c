@@ -61,7 +61,7 @@ _fz_playback_adapter_destruct(const fz_ptr_t  self)
     fz_playback_adapter_stop(_self);
 
     if (_self->synthesizer != NULL) {
-        fz_free(_self->synthesizer);
+        fz_release(_self->synthesizer);
     }
 
     pthread_mutex_destroy(&_self->mutex);

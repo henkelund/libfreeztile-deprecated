@@ -84,9 +84,9 @@ _fz_synthesizer_construct(
     fz_size_t i = 0;
     for (; i < multicurve->size; ++i) {
         // free sub curve cache
-        fz_free(fz_list_ref(multicurve, i, fz_mccurve_t)->form);
+        fz_release(fz_list_ref(multicurve, i, fz_mccurve_t)->form);
     }
-    fz_free(multicurve);
+    fz_release(multicurve);
 
     // Sample amplifier adsr
     fz_envelope_set_adsr(_self->envdesc, 1., 44100, .4, 25000, .9, 40000, 50000);
@@ -101,11 +101,11 @@ _fz_synthesizer_destruct(const fz_ptr_t self)
 {
     fz_synthesizer_t *_self = (fz_synthesizer_t*) self;
 
-    fz_free(_self->ob);
-    fz_free(_self->note_pool);
-    fz_free(_self->active_notes);
-    fz_free(_self->voice);
-    fz_free(_self->envdesc);
+    fz_release(_self->ob);
+    fz_release(_self->note_pool);
+    fz_release(_self->active_notes);
+    fz_release(_self->voice);
+    fz_release(_self->envdesc);
 
     return _self;
 }
@@ -230,7 +230,7 @@ fz_synthesizer_play(
         note->freq = frequency;
         fz_note_start(note, amplitude);
         fz_list_append(synth->active_notes, &note);
-        fz_free(note);
+        fz_release(note);
     }
 
     return note;

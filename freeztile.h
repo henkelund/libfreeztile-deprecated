@@ -95,7 +95,7 @@ fz_ptr_t    fz_retain PARAMS((fz_ptr_t obj));
  *
  * @param  fz_ptr_t self
  */
-void        fz_free PARAMS((fz_ptr_t self));
+void        fz_release PARAMS((fz_ptr_t self));
 
 /**
  * Returns a DJBX33X hash integer of the given data

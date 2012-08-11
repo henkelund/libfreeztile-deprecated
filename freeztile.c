@@ -66,7 +66,7 @@ fz_retain(fz_ptr_t obj)
 }
 
 void
-fz_free(fz_ptr_t self)
+fz_release(fz_ptr_t self)
 {
     fz_int_t *refcnt = ((fz_int_t*) self) - 1;
 

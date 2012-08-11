@@ -72,7 +72,7 @@ _fz_list_destruct(fz_ptr_t self)
         }
     } else if (_self->flags & FZ_LIST_FLAG_RETAIN) {
         for (i = 0; i < _self->size; ++i) {
-            fz_free(fz_list_val(_self, i, fz_ptr_t));
+            fz_release(fz_list_val(_self, i, fz_ptr_t));
         }
     }
     // free item storage
@@ -112,7 +112,7 @@ fz_list_clear(
         }
     } else if (list->flags & FZ_LIST_FLAG_RETAIN) {
         for (i = 0; i < list->size; ++i) {
-            fz_free(fz_list_val(list, i, fz_ptr_t));
+            fz_release(fz_list_val(list, i, fz_ptr_t));
         }
     }
     list->size = size;
@@ -198,7 +198,7 @@ fz_list_remove(
     if (list->remove != NULL) {
         list->remove(list->items + (pos*list->type_size));
     } else if (list->flags & FZ_LIST_FLAG_RETAIN) {
-        fz_free(fz_list_val(list, pos, fz_ptr_t));
+        fz_release(fz_list_val(list, pos, fz_ptr_t));
     }
     --list->size;
     if (pos != list->size) {

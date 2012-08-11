@@ -53,7 +53,7 @@ fz_ptr_t
 _fz_osc_destruct(fz_ptr_t self)
 {
     fz_osc_t *_self = (fz_osc_t*) self;
-    fz_free(_self->form);
+    fz_release(_self->form);
     return _self;
 }
 

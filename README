@@ -34,6 +34,6 @@ sleep(1);
 
 puts("Shut down");
 fz_playback_adapter_stop(adapter);
-fz_free(adapter);
-fz_free(synth);
+fz_release(adapter);
+fz_release(synth);
 

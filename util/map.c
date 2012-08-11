@@ -76,16 +76,16 @@ _fz_map_destruct(fz_ptr_t self)
             for (j = 0; j < _self->table[i]->size; ++j) {
                 value = fz_list_ref(_self->table[i], j, fz_map_item_t)->value;
                 if (_self->flags & FZ_MAP_FLAG_RETAIN) {
-                    fz_free(*((fz_ptr_t*) value));
+                    fz_release(*((fz_ptr_t*) value));
                 }
                 free(value); // key is freed along with value
             }
-            fz_free(_self->table[i]);
+            fz_release(_self->table[i]);
         }
     }
 
     if (_self->flags & FZ_MAP_FLAG_ITERABLE && _self->iterator != NULL) {
-        fz_free(_self->iterator);
+        fz_release(_self->iterator);
     }
 
     free(_self->type_name);
@@ -129,7 +129,7 @@ fz_map_set(
         if (strcmp(key, fz_list_ref(row, i, fz_map_item_t)->key) == 0) {
             cell = fz_list_ref(row, i, fz_map_item_t);
             if (map->flags & FZ_MAP_FLAG_RETAIN) {
-                fz_free(*((fz_ptr_t*) cell->value));
+                fz_release(*((fz_ptr_t*) cell->value));
                 *((fz_ptr_t*) cell->value) = NULL;
             }
             break;
@@ -197,7 +197,7 @@ fz_map_uns(
     for (i = 0; i < row->size; ++i) {
         if (strcmp(key, fz_list_ref(row, i, fz_map_item_t)->key) == 0) {
             if (map->flags & FZ_MAP_FLAG_RETAIN) {
-                fz_free(*((fz_ptr_t*) fz_list_ref(row, i, fz_map_item_t)->value));
+                fz_release(*((fz_ptr_t*) fz_list_ref(row, i, fz_map_item_t)->value));
             }
             free(fz_list_ref(row, i, fz_map_item_t)->value);
             // key is freed along with value

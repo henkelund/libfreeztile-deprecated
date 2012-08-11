@@ -54,7 +54,7 @@ fz_ptr_t
 _fz_form_destruct(fz_ptr_t self)
 {
     fz_form_t *_self = (fz_form_t*) self;
-    fz_free(_self->template);
+    fz_release(_self->template);
     return _self;
 }
 
