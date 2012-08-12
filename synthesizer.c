@@ -29,7 +29,7 @@
 #include "synthesizer.h"
 #include "freeztile.h"
 #include "note.h"
-#include "oscillator.h"
+#include "producer/oscillator.h"
 #include "form.h"
 
 // ### PRIVATE ###

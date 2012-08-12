@@ -29,7 +29,7 @@
 #ifndef _FZ_OSCILLATOR_H_
 #define _FZ_OSCILLATOR_H_
 
-#include "types.h"
+#include "../types.h"
 
 typedef struct {
     const fz_ptr_t  _class;

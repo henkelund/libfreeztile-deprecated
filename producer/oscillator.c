@@ -28,9 +28,9 @@
 
 #include <stdlib.h>
 #include "oscillator.h"
-#include "freeztile.h"
-#include "form.h"
-#include "util/list.h"
+#include "../freeztile.h"
+#include "../form.h"
+#include "../util/list.h"
 
 // ### PRIVATE ###
 

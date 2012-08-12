@@ -32,7 +32,7 @@
 #include "note.h"
 #include "freeztile.h"
 #include "util/list.h"
-#include "oscillator.h"
+#include "producer/oscillator.h"
 
 // ### PRIVATE ###
 
