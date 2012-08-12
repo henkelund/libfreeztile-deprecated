@@ -82,6 +82,64 @@ _fz_list_destruct(fz_ptr_t self)
     return _self;
 }
 
+static
+fz_uint_t
+_fz_list_quicksort_partition(
+                             fz_list_t *self,
+                             fz_int_t   left_index,
+                             fz_int_t   right_index,
+                             fz_int_t   pivot_index,
+                             fz_int_t   dir)
+{
+    fz_int_t  i,
+              store_index = left_index;
+    fz_char_t pivot[self->type_size];
+    fz_ptr_t  other;
+
+    // Store pivot value & move it to the end
+    memcpy(pivot, self->items + (pivot_index*self->type_size), self->type_size);
+    fz_list_swap(self, pivot_index, right_index);
+
+    for (i = left_index; i < right_index; ++i) {
+        other = self->items + (i*self->type_size);
+        if ((self->compare == NULL ?
+                // Assume object ptr if no cmp fnc, will probably crash if not so
+                dir*fz_compare(*((fz_ptr_t*) other), *((fz_ptr_t*) pivot)) :
+                dir*self->compare(other, pivot)) < 0) {
+            fz_list_swap(self, i, store_index);
+            ++store_index;
+        }
+    }
+
+    fz_list_swap(self, store_index, right_index);
+
+    return store_index;
+}
+
+static
+fz_result_t
+_fz_list_quicksort(
+                   fz_list_t *self,
+                   fz_int_t   left_index,
+                   fz_int_t   right_index,
+                   fz_int_t   dir)
+{
+    fz_int_t pivot_index;
+
+    if (left_index < right_index) {
+
+        pivot_index =
+                _fz_list_quicksort_partition(self, left_index, right_index,
+                        // Less likely to overflow than (left_index + right_index)/2
+                        left_index + (right_index - left_index)/2,
+                        dir);
+
+        _fz_list_quicksort(self, left_index,      pivot_index - 1, dir);
+        _fz_list_quicksort(self, pivot_index + 1, right_index,     dir);
+    }
+    return FZ_RESULT_SUCCESS;
+}
+
 static const fz_object_t _fz_list = {
     sizeof (fz_list_t),
     _fz_list_construct,
@@ -207,4 +265,59 @@ fz_list_remove(
         );
     }
     return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_swap(
+             fz_list_t *list,
+             fz_uint_t  i1,
+             fz_uint_t  i2)
+{
+    fz_char_t tmp[list == NULL ? 0 : list->type_size];
+    fz_ptr_t  p1,
+              p2;
+    if (list == NULL) {
+        return FZ_RESULT_INVALID_ARG;
+    } else if (i1 < 0 || i1 >= list->size || i2 < 0 || i2 >= list->size) {
+        return FZ_RESULT_IOOB_ERROR;
+    }
+
+    if (i1 != i2) {
+        p1 = list->items + (i1*list->type_size);
+        p2 = list->items + (i2*list->type_size);
+        memmove(tmp, p1,  list->type_size);
+        memmove(p1,  p2,  list->type_size);
+        memmove(p2,  tmp, list->type_size);
+    }
+
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_concat(
+               fz_list_t *self,
+               fz_list_t *other)
+{
+    fz_size_t i = 0, osize;
+    if (self == NULL || other == NULL || self->type_size != other->type_size) {
+        return FZ_RESULT_INVALID_ARG;
+    }
+    fz_list_grow(self, self->size + other->size);
+    osize = other->size; // in case self == other
+    for (; i < osize; ++i) {
+        fz_list_append(self, other->items + (i*other->type_size));
+    }
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_sort(fz_list_t *self)
+{
+    return _fz_list_quicksort(self, 0, self->size - 1, 1);
+}
+
+fz_result_t
+fz_list_rsort(fz_list_t *self)
+{
+    return _fz_list_quicksort(self, 0, self->size - 1, -1);
 }

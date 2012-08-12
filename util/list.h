@@ -116,6 +116,16 @@
                 (fz_release(capture), fz_list_val(list, list->size - 1, type)) : NULL)
 
 /**
+ * Create a compare callback function for a primitive type
+ *
+ * @param name
+ * @param type
+ */
+#define FZ_LIST_CMP_FNC(name, type) \
+            fz_int_t name(const fz_ptr_t a, const fz_ptr_t b) \
+            { return *((type*) a) - *((type*) b); }
+
+/**
  *
  * @param  fz_list_t *list
  * @param  fz_uint_t min_size
@@ -166,6 +176,42 @@ fz_result_t fz_list_append(
 fz_result_t fz_list_remove(
                            fz_list_t *list,
                            fz_uint_t  pos);
+
+/**
+ *
+ * @param  fz_list_t   *list
+ * @param  fz_uint_t    i1
+ * @param  fz_uint_t    i2
+ * @return fz_result_t
+ */
+fz_result_t fz_list_swap(
+                         fz_list_t *list,
+                         fz_uint_t  i1,
+                         fz_uint_t  i2);
+
+/**
+ *
+ * @param  fz_list_t   *self
+ * @param  fz_list_t   *other
+ * @return fz_result_t
+ */
+fz_result_t fz_list_concat(
+                           fz_list_t *self,
+                           fz_list_t *other);
+
+/**
+ *
+ * @param  fz_list_t   *list
+ * @return fz_result_t
+ */
+fz_result_t fz_list_sort(fz_list_t *list);
+
+/**
+ *
+ * @param  fz_list_t   *list
+ * @return fz_result_t
+ */
+fz_result_t fz_list_rsort(fz_list_t *list);
 
 const fz_ptr_t fz_list;
 
