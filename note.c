@@ -134,8 +134,7 @@ fz_note_apply(
                                             note->oscillators, i, fz_oscillator_t*);
             oscillator->sample_rate = sample_rate;
             oscillator->freq        = note->freq;
-            fz_list_clear(oscillator->framebuf, note->ob->size);
-            fz_oscillator_apply(oscillator, note->ob);
+            fz_produce(oscillator, note->ob);
         }
 
         for (i = 0; i < fz_map_size(note->filters); ++i) {

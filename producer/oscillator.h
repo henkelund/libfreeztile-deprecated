@@ -30,6 +30,7 @@
 #define _FZ_OSCILLATOR_H_
 
 #include "../types.h"
+#include "producer.h"
 
 typedef struct {
     const fz_ptr_t  _class;
@@ -39,23 +40,13 @@ typedef struct {
 } fz_oscdesc_t;
 
 typedef struct {
-    const fz_ptr_t  _class;
-    fz_oscdesc_t   *descriptor;
-    fz_frame_t      frame;
-    fz_list_t      *framebuf;
-    fz_real_t       freq;
-    fz_uint_t       sample_rate;
+    fz_producer_t  _super;
+    fz_oscdesc_t  *descriptor;
+    fz_frame_t     frame;
+    fz_list_t     *framebuf;
+    fz_real_t      freq;
+    fz_uint_t      sample_rate;
 } fz_oscillator_t;
-
-/**
- *
- * @param  fz_oscillator_t *oscillator
- * @param  fz_list_t       *samples
- * @return fz_result_r
- */
-fz_result_t fz_oscillator_apply(
-                                fz_oscillator_t *oscillator,
-                                fz_list_t       *samples);
 
 const fz_ptr_t fz_oscdesc;
 const fz_ptr_t fz_oscillator;
