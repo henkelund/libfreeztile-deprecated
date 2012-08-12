@@ -143,6 +143,42 @@ fz_release(fz_ptr_t self)
     }
 }
 
+fz_ptr_t
+fz_clone(const fz_ptr_t object)
+{
+    const fz_object_t *type;
+    if (object == NULL) {
+        return NULL;
+    }
+    type = *((fz_object_t**) object);
+    return type->clone == NULL ? NULL : type->clone(object);
+}
+
+fz_int_t
+fz_compare(
+           const fz_ptr_t a,
+           const fz_ptr_t b)
+{
+    const fz_object_t *a_type;
+    const fz_object_t *b_type;
+
+    if (a == b) {
+        return 0;
+    } else if (a == NULL) {
+        return -1;
+    } else if (b == NULL) {
+        return 1;
+    }
+
+    a_type = *((fz_object_t**) a);
+    b_type = *((fz_object_t**) b);
+    if (a_type != b_type || a_type->compare == NULL) {
+        return 0;
+    }
+
+    return a_type->compare(a, b);
+}
+
 uint32_t
 fz_hash(
         const fz_char_t *data,

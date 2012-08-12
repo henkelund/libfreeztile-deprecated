@@ -111,6 +111,21 @@ fz_ptr_t    fz_retain PARAMS((fz_ptr_t obj));
 void        fz_release PARAMS((fz_ptr_t self));
 
 /**
+ *
+ * @param  const fz_ptr_t object
+ * @return fz_ptr_t
+ */
+fz_ptr_t    fz_clone PARAMS((const fz_ptr_t));
+
+/**
+ *
+ * @param  const fz_ptr_t a
+ * @param  const fz_ptr_t b
+ * @return fz_int_t
+ */
+fz_int_t    fz_compare PARAMS((const fz_ptr_t, const fz_ptr_t));
+
+/**
  * Returns a DJBX33X hash integer of the given data
  *
  * @param  data
