@@ -33,6 +33,7 @@
 #include "freeztile.h"
 #include "util/list.h"
 #include "producer/oscillator.h"
+#include "synthesizer.h"
 
 // ### PRIVATE ###
 
@@ -49,6 +50,7 @@ _fz_note_construct(
     _self->oscillators = fz_list_new_flags(fz_oscillator_t*, FZ_LIST_FLAG_RETAIN);
     _self->voice       = NULL;
     _self->freq        = 0;
+    _self->sample_rate = FZ_SAMPLE_RATE;
     _self->flags       = FZ_NOTE_FLAG_NONE;
     _self->ob          = fz_list_new(fz_amp_t);
     _self->envelopes   = fz_map_new_flags(fz_envelope_t*,
@@ -114,8 +116,7 @@ const fz_ptr_t fz_note = (const fz_ptr_t) &_fz_note;
 fz_result_t
 fz_note_apply(
               fz_note_t *note,
-              fz_list_t *output,
-              fz_uint_t  sample_rate)
+              fz_list_t *output)
 {
     fz_oscillator_t *oscillator;
     fz_uint_t        i;
@@ -132,7 +133,7 @@ fz_note_apply(
         for (i = 0; i < note->oscillators->size; ++i) {
             oscillator              = fz_list_val(
                                             note->oscillators, i, fz_oscillator_t*);
-            oscillator->sample_rate = sample_rate;
+            oscillator->sample_rate = note->sample_rate;
             oscillator->freq        = note->freq;
             fz_produce(oscillator, note->ob);
         }

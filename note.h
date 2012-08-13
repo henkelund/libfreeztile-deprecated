@@ -45,6 +45,7 @@ typedef struct {
     fz_voice_t     *voice;
     fz_list_t      *oscillators;
     fz_real_t       freq;
+    fz_uint_t       sample_rate;
     fz_flags_t      flags;
     fz_list_t      *ob;
     fz_map_t       *envelopes;
@@ -61,8 +62,7 @@ typedef struct {
  */
 fz_result_t fz_note_apply(
                           fz_note_t *note,
-                          fz_list_t *output,
-                          fz_uint_t  sample_rate);
+                          fz_list_t *output);
 
 /**
  * Parse a frequency from a given string
