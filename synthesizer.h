@@ -30,7 +30,7 @@
 #define _FZ_SYNTHESIZER_H_
 
 #include "types.h"
-#include "note.h"
+#include "producer/note.h"
 #include "util/list.h"
 
 #ifndef FZ_SAMPLE_RATE

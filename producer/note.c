@@ -30,10 +30,10 @@
 #include <ctype.h>
 #include <math.h>
 #include "note.h"
-#include "freeztile.h"
-#include "util/list.h"
-#include "producer/oscillator.h"
-#include "synthesizer.h"
+#include "../freeztile.h"
+#include "../util/list.h"
+#include "oscillator.h"
+#include "../synthesizer.h"
 
 // ### PRIVATE ###
 

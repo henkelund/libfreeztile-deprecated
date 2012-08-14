@@ -28,7 +28,7 @@
 
 #include "synthesizer.h"
 #include "freeztile.h"
-#include "note.h"
+#include "producer/note.h"
 #include "producer/oscillator.h"
 #include "form.h"
 
