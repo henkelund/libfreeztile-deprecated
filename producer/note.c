@@ -45,6 +45,9 @@ _fz_note_sync(fz_note_t *note)
 {
     fz_oscillator_t *oscillator;
     fz_uint_t        i;
+    if (note->voice == NULL) {
+        return FZ_RESULT_SUCCESS;
+    }
     for (i = 0; i < note->voice->size; ++i) {
         if (i == note->oscillators->size) {
             oscillator = fz_new(fz_oscillator);
@@ -156,11 +159,41 @@ _fz_note_destruct(fz_ptr_t self)
     return _self;
 }
 
+static
+fz_ptr_t
+_fz_note_clone(const fz_ptr_t self)
+{
+    fz_note_t *_self = (fz_note_t*) self;
+    fz_note_t *clone = fz_new(fz_note);
+
+    // Do malloc stuff. Better to do it here than "just in time" in produce callback
+    fz_list_grow(clone->oscillators, _self->oscillators->size);
+    fz_list_grow(clone->ob,          _self->ob->size);
+    fz_list_grow(clone->env_ob,      _self->env_ob->size);
+
+    clone->voice       = _self->voice;
+    clone->sample_rate = _self->sample_rate;
+    // clone->flags = (_self->flags &= ~FZ_NOTE_FLAG_ACTIVE);
+    // ^-- Might be a good idea if it makes sense for other flags
+    _fz_note_sync(clone);
+
+    fz_envelope_t *clone_ampenv = fz_map_val(clone->envelopes,
+                                    FZ_AMPLIFIER_KEY, fz_envelope_t*);
+    fz_envelope_t *_self_ampenv = fz_map_val(_self->envelopes,
+                                    FZ_AMPLIFIER_KEY, fz_envelope_t*);
+
+    if (clone_ampenv && _self_ampenv && _self_ampenv->descriptor != NULL) {
+        clone_ampenv->descriptor = fz_retain(_self_ampenv->descriptor);
+    }
+
+    return clone;
+}
+
 static const fz_object_t _fz_note = {
     sizeof (fz_note_t),
     _fz_note_construct,
     _fz_note_destruct,
-    NULL,
+    _fz_note_clone,
     NULL
 };
 

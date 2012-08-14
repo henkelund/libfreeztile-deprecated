@@ -160,15 +160,27 @@ fz_synthesizer_set_polyphony(
                              fz_uint_t         level)
 {
     fz_uint_t      current_level = fz_synthesizer_get_polyphony(synth);
+    fz_note_t     *note;
     fz_envelope_t *envelope;
 
     for (; current_level < level; ++current_level) {
-        fz_list_append_release(synth->note_pool, fz_new(fz_note), note, fz_note_t*);
-        note->voice = synth->voice;
-        envelope = fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
-        if (envelope != NULL) {
-            envelope->descriptor = fz_retain(synth->envdesc);
+        if (current_level == 0) {
+            note = fz_new(fz_note);
+            note->voice = synth->voice;
+            envelope = fz_map_val(note->envelopes, FZ_AMPLIFIER_KEY, fz_envelope_t*);
+            if (envelope != NULL) {
+                envelope->descriptor = fz_retain(synth->envdesc);
+            }
+        } else {
+            note = fz_clone(fz_list_val(
+                                (synth->note_pool->size > 0 ?
+                                        synth->note_pool
+                                        :
+                                        synth->active_notes),
+                                0, fz_note_t*));
         }
+        fz_list_append(synth->note_pool, &note);
+        fz_release(note);
     }
 
     for (; current_level > level; --current_level) {
