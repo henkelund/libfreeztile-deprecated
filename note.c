@@ -40,6 +40,77 @@
 #define FZ_HALFNOTE_DIST 1.059463094 // pow(2, 1.0/12)
 
 static
+fz_result_t
+_fz_note_sync(fz_note_t *note)
+{
+    fz_oscillator_t *oscillator;
+    fz_uint_t        i;
+    for (i = 0; i < note->voice->size; ++i) {
+        if (i == note->oscillators->size) {
+            oscillator = fz_new(fz_oscillator);
+            fz_list_append(note->oscillators, &oscillator);
+            fz_release(oscillator);
+        }
+        fz_list_val(note->oscillators, i, fz_oscillator_t*)->descriptor =
+                                        fz_list_val(note->voice, i, fz_oscdesc_t*);
+    }
+    return FZ_RESULT_SUCCESS;
+}
+
+static
+fz_result_t
+_fz_note_produce(
+                 fz_producer_t *self,
+                 fz_list_t     *buffer)
+{
+    fz_note_t       *_self = (fz_note_t*) self;
+    fz_oscillator_t *oscillator;
+    fz_uint_t        i;
+    fz_envelope_t   *envelope;
+    fz_filter_t     *filter;
+    fz_result_t      result = FZ_RESULT_SUCCESS;
+
+    if (_self->voice && (result = _fz_note_sync(_self)) != FZ_RESULT_SUCCESS) {
+        return result;
+    } else if (_self->freq > 0) {
+
+        fz_list_clear(_self->ob, buffer->size);
+
+        for (i = 0; i < _self->oscillators->size; ++i) {
+            oscillator              = fz_list_val(
+                                            _self->oscillators, i, fz_oscillator_t*);
+            oscillator->sample_rate = _self->sample_rate;
+            oscillator->freq        = _self->freq;
+            fz_produce(oscillator, _self->ob);
+        }
+
+        for (i = 0; i < fz_map_size(_self->filters); ++i) {
+
+            filter = fz_map_ival(_self->filters, i, fz_filter_t*);
+
+            envelope = fz_map_val(_self->envelopes,
+                            fz_map_ikey(_self->filters, i), fz_envelope_t*);
+            if (envelope) {
+                fz_list_clear(_self->env_ob, _self->ob->size);
+                fz_produce(envelope, _self->env_ob);
+                filter->regulator = _self->env_ob;
+            } else {
+                filter->regulator = NULL;
+            }
+
+            fz_filtrate(fz_map_ival(_self->filters, i, fz_filter_t*), _self->ob);
+        }
+
+        for (i = 0; i < buffer->size; ++i) {
+            fz_list_val(buffer, i, fz_amp_t) +=
+                    fz_list_val(_self->ob, i, fz_amp_t);
+        }
+    }
+
+    return result;
+}
+
+static
 fz_ptr_t
 _fz_note_construct(
                    const fz_ptr_t  self,
@@ -65,6 +136,8 @@ _fz_note_construct(
     fz_amplifier_t *amp = fz_new(fz_amplifier);
     fz_map_set_noretain(_self->filters, FZ_AMPLIFIER_KEY, &amp);
 
+    ((fz_producer_t*) self)->produce = _fz_note_produce;
+
     return _self;
 }
 
@@ -83,24 +156,6 @@ _fz_note_destruct(fz_ptr_t self)
     return _self;
 }
 
-static
-fz_result_t
-_fz_note_sync(fz_note_t *note)
-{
-    fz_oscillator_t *oscillator;
-    fz_uint_t        i;
-    for (i = 0; i < note->voice->size; ++i) {
-        if (i == note->oscillators->size) {
-            oscillator = fz_new(fz_oscillator);
-            fz_list_append(note->oscillators, &oscillator);
-            fz_release(oscillator);
-        }
-        fz_list_val(note->oscillators, i, fz_oscillator_t*)->descriptor =
-                                        fz_list_val(note->voice, i, fz_oscdesc_t*);
-    }
-    return FZ_RESULT_SUCCESS;
-}
-
 static const fz_object_t _fz_note = {
     sizeof (fz_note_t),
     _fz_note_construct,
@@ -112,57 +167,6 @@ static const fz_object_t _fz_note = {
 // ### PUBLIC ###
 
 const fz_ptr_t fz_note = (const fz_ptr_t) &_fz_note;
-
-fz_result_t
-fz_note_apply(
-              fz_note_t *note,
-              fz_list_t *output)
-{
-    fz_oscillator_t *oscillator;
-    fz_uint_t        i;
-    fz_envelope_t   *envelope;
-    fz_filter_t     *filter;
-    fz_result_t      result = FZ_RESULT_SUCCESS;
-
-    if (note->voice && (result = _fz_note_sync(note)) != FZ_RESULT_SUCCESS) {
-        return result;
-    } else if (note->freq > 0) {
-
-        fz_list_clear(note->ob, output->size);
-
-        for (i = 0; i < note->oscillators->size; ++i) {
-            oscillator              = fz_list_val(
-                                            note->oscillators, i, fz_oscillator_t*);
-            oscillator->sample_rate = note->sample_rate;
-            oscillator->freq        = note->freq;
-            fz_produce(oscillator, note->ob);
-        }
-
-        for (i = 0; i < fz_map_size(note->filters); ++i) {
-
-            filter = fz_map_ival(note->filters, i, fz_filter_t*);
-
-            envelope = fz_map_val(
-                    note->envelopes, fz_map_ikey(note->filters, i), fz_envelope_t*);
-            if (envelope) {
-                fz_list_clear(note->env_ob, note->ob->size);
-                fz_produce(envelope, note->env_ob);
-                filter->regulator = note->env_ob;
-            } else {
-                filter->regulator = NULL;
-            }
-
-            fz_filtrate(fz_map_ival(note->filters, i, fz_filter_t*), note->ob);
-        }
-
-        for (i = 0; i < output->size; ++i) {
-            fz_list_val(output, i, fz_amp_t) +=
-                    fz_list_val(note->ob, i, fz_amp_t);
-        }
-    }
-
-    return result;
-}
 
 fz_real_t
 fz_note_parse_frequency(const fz_char_t *name)

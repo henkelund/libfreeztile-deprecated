@@ -140,7 +140,7 @@ fz_synthesizer_output(
         note              = fz_list_val(synth->active_notes, i, fz_note_t*);
         note->voice       = synth->voice;
         note->sample_rate = synth->sample_rate;
-        fz_note_apply(note, synth->ob);
+        fz_produce(note, synth->ob);
 
         // Put back in pool if done playing
         if (!fz_note_is_active(note)) {
