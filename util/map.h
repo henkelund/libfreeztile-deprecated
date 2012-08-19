@@ -92,7 +92,7 @@ BEGIN_C_DECLS
  * @return type
  */
 #define fz_map_ival(map, i, type) \
-            (*((type*) fz_list_val(map->iterator, i, fz_map_item_t*)->value))
+            (*((type*) fz_map_iget(map, i)))
 
 /**
  * Macro for map value pointer retrieval by index (for iteratable maps)
@@ -103,17 +103,7 @@ BEGIN_C_DECLS
  * @return type
  */
 #define fz_map_iref(map, i, type) \
-            ((type*) fz_list_val(map->iterator, i, fz_map_item_t*)->value)
-
-/**
- * Macro for map key retrieval by index (for iteratable maps)
- *
- * @param  fz_map_t   *map  Map to fetch from
- * @param  fz_uint_t   i    Index of key to fetch
- * @return const fz_char_t*
- */
-#define fz_map_ikey(map, i) \
-            (fz_list_val(map->iterator, i, fz_map_item_t*)->key)
+            ((type*) fz_map_iget(map, i))
 
 /**
  * Macro for map key checking
@@ -126,15 +116,6 @@ BEGIN_C_DECLS
             (fz_map_get(map, key) != NULL)
 
 /**
- * Macro for checking map size. Returns 0 for non-iteratable maps.
- *
- * @param  fz_map_t *map Map to measure
- * @return int
- */
-#define fz_map_size(map) \
-            (map->iterator != NULL ? fz_list_size(map->iterator) : 0)
-
-/**
  * Macro for giving value ownership to retaining object type maps
  *
  * @param  map
@@ -142,28 +123,15 @@ BEGIN_C_DECLS
  * @param  value
  * @return FZ_RESULT_SUCCESS
  */
-#define fz_map_set_noretain(map, key, value)       \
-            (map->flags & FZ_MAP_FLAG_RETAIN ?     \
-                map->flags &= ~FZ_MAP_FLAG_RETAIN, \
-                fz_map_set(map, key, value),       \
-                map->flags |= FZ_MAP_FLAG_RETAIN,  \
-                FZ_RESULT_SUCCESS                  \
-                :                                  \
-                fz_map_set(map, key, value))       \
+#define fz_map_set_noretain(map, key, value)                                    \
+            (fz_map_flags(map) & FZ_MAP_FLAG_RETAIN ?                           \
+                fz_map_set_flags(map, fz_map_flags(map) & ~FZ_MAP_FLAG_RETAIN), \
+                fz_map_set(map, key, value),                                    \
+                fz_map_set_flags(map, fz_map_flags(map) | FZ_MAP_FLAG_RETAIN)   \
+                :                                                               \
+                fz_map_set(map, key, value))                                    \
 
-typedef struct {
-    fz_char_t *key;
-    fz_ptr_t   value;
-} fz_map_item_t;
-
-typedef struct {
-    const fz_ptr_t  _class;
-    fz_list_t      *table[FZ_HASH_PRIME];
-    fz_uint_t       type_size;
-    fz_char_t      *type_name;
-    fz_flags_t      flags;
-    fz_list_t      *iterator;
-} fz_map_t;
+typedef struct fz_map_s fz_map_t;
 
 const fz_ptr_t fz_map;
 
@@ -175,10 +143,10 @@ const fz_ptr_t fz_map;
  * @param  fz_ptr_t         value
  * @return                        FZ_RESULT_SUCCESS on success
  */
-fz_result_t fz_map_set(
-                       fz_map_t        *map,
-                       const fz_char_t *key,
-                       fz_ptr_t         value);
+fz_result_t      fz_map_set PARAMS((
+                                    fz_map_t        *map,
+                                    const fz_char_t *key,
+                                    fz_ptr_t         value));
 
 /**
  * Retrieve a value from the map
@@ -187,9 +155,9 @@ fz_result_t fz_map_set(
  * @param  const fz_char_t *key
  * @return                      Pointer to identified value or NULL if not found
  */
-fz_ptr_t    fz_map_get(
-                       fz_map_t        *map,
-                       const fz_char_t *key);
+fz_ptr_t         fz_map_get PARAMS((
+                                    fz_map_t        *map,
+                                    const fz_char_t *key));
 
 /**
  * Unset a value
@@ -198,9 +166,55 @@ fz_ptr_t    fz_map_get(
  * @param  const fz_char_t *key
  * @return                      FZ_RESULT_SUCCESS on success
  */
-fz_result_t fz_map_uns(
-                       fz_map_t        *map,
-                       const fz_char_t *key);
+fz_result_t      fz_map_uns PARAMS((
+                                    fz_map_t        *map,
+                                    const fz_char_t *key));
+
+/**
+ *
+ * @param  fz_map_t *map
+ * @return fz_uint_t
+ */
+fz_uint_t        fz_map_size PARAMS((fz_map_t *map));
+
+/**
+ * Retrieve a value from the map by iterator index
+ *
+ * @param  fz_map_t  *map
+ * @param  fz_uint_t  i
+ * @return                Pointer to identified value or NULL if not found
+ */
+fz_ptr_t         fz_map_iget PARAMS((
+                                     fz_map_t  *map,
+                                     fz_uint_t  i));
+
+/**
+ * Retrieve a key from the map by iterator index
+ *
+ * @param  fz_map_t         *map
+ * @param  fz_uint_t         i
+ * @return const fz_char_t*
+ */
+const fz_char_t* fz_map_ikey PARAMS((
+                                     fz_map_t  *map,
+                                     fz_uint_t  i));
+
+/**
+ *
+ * @param  fz_map_t  *map
+ * @return fz_flags_t
+ */
+fz_flags_t       fz_map_flags PARAMS((fz_map_t *map));
+
+/**
+ *
+ * @param  fz_map_t  *map
+ * @param fz_flags_t
+ * @return fz_result_t
+ */
+fz_result_t      fz_map_set_flags PARAMS((
+                                          fz_map_t   *map,
+                                          fz_flags_t  flags));
 
 END_C_DECLS
 

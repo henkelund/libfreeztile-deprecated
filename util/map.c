@@ -29,6 +29,20 @@
 #include "map.h"
 #include <string.h>
 
+typedef struct {
+    fz_char_t *key;
+    fz_ptr_t   value;
+} fz_map_item_t;
+
+struct fz_map_s {
+    const fz_ptr_t  _class;
+    fz_list_t      *table[FZ_HASH_PRIME];
+    fz_uint_t       type_size;
+    fz_char_t      *type_name;
+    fz_flags_t      flags;
+    fz_list_t      *iterator;
+};
+
 static
 fz_ptr_t
 _fz_map_construct(
@@ -212,5 +226,44 @@ fz_map_uns(
         }
     }
 
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_uint_t
+fz_map_size(fz_map_t *map)
+{
+    return map->iterator == NULL ? 0 : fz_list_size(map->iterator);
+}
+
+fz_ptr_t
+fz_map_iget(
+            fz_map_t  *map,
+            fz_uint_t  i)
+{
+    return map->iterator == NULL ?
+                NULL : fz_list_val(map->iterator, i, fz_map_item_t*)->value;
+}
+
+const fz_char_t*
+fz_map_ikey(
+            fz_map_t  *map,
+            fz_uint_t  i)
+{
+    return map->iterator == NULL ?
+                NULL : fz_list_val(map->iterator, i, fz_map_item_t*)->key;
+}
+
+fz_flags_t
+fz_map_flags(fz_map_t *map)
+{
+    return map->flags;
+}
+
+fz_result_t
+fz_map_set_flags(
+                 fz_map_t   *map,
+                 fz_flags_t  flags)
+{
+    map->flags = flags;
     return FZ_RESULT_SUCCESS;
 }
