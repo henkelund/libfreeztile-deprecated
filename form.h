@@ -29,7 +29,7 @@
 #ifndef _FZ_FORM_H_
 #define _FZ_FORM_H_
 
-#include "types.h"
+#include "freeztile.h"
 #include "util/list.h"
 
 #ifndef FZ_NR_TOL

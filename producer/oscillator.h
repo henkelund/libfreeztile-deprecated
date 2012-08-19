@@ -29,7 +29,7 @@
 #ifndef _FZ_OSCILLATOR_H_
 #define _FZ_OSCILLATOR_H_
 
-#include "../types.h"
+#include "../freeztile.h"
 #include "producer.h"
 #include "../form.h"
 

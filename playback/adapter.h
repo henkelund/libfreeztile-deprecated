@@ -30,7 +30,7 @@
 #define _FZ_PLAYBACK_ADAPTER_H_
 
 #include <pthread.h>
-#include "../types.h"
+#include "../freeztile.h"
 #include "../synthesizer.h"
 
 typedef struct fz_playback_adapter_s {

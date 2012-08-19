@@ -29,7 +29,7 @@
 #ifndef _FZ_NOTE_H_
 #define _FZ_NOTE_H_
 
-#include "../types.h"
+#include "../freeztile.h"
 #include "../util/map.h"
 #include "../filter/amplifier.h"
 

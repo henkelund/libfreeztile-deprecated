@@ -29,7 +29,7 @@
 #ifndef _FZ_SYNTHESIZER_H_
 #define _FZ_SYNTHESIZER_H_
 
-#include "types.h"
+#include "freeztile.h"
 #include "producer/note.h"
 #include "util/list.h"
 

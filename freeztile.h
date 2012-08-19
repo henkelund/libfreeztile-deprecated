@@ -48,9 +48,9 @@
 # define PARAMS(protos) ()
 #endif
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <inttypes.h>
-#include "types.h"
 
 BEGIN_C_DECLS
 
@@ -74,6 +74,48 @@ BEGIN_C_DECLS
 #define FZ_RESULT_MALLOC_ERROR    2
 #define FZ_RESULT_IOOB_ERROR      3
 #define FZ_RESULT_INVALID_ARG     4
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+typedef float             fz_float_t;
+
+typedef float             fz_real_t;
+
+typedef int               fz_int_t;
+
+typedef unsigned int      fz_uint_t;
+
+typedef unsigned long int fz_ulong_t;
+
+typedef char              fz_char_t;
+
+typedef int               fz_result_t;
+
+typedef void*             fz_ptr_t;
+
+typedef size_t            fz_size_t;
+
+typedef fz_ulong_t        fz_flags_t;
+
+typedef fz_real_t         fz_amp_t;
+
+typedef fz_real_t         fz_frame_t;
+
+typedef char              fz_bool_t;
+
+typedef struct {
+    fz_size_t   size;
+    fz_ptr_t  (*construct) (fz_ptr_t       self, va_list *args);
+    fz_ptr_t  (*destruct)  (fz_ptr_t       self);
+    fz_ptr_t  (*clone)     (const fz_ptr_t self);
+    fz_int_t  (*compare)   (const fz_ptr_t self, const fz_ptr_t other);
+} fz_object_t;
 
 /**
  *
