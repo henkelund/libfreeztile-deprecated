@@ -31,6 +31,7 @@
 
 #include "producer.h"
 #include "../freeztile.h"
+#include "../form.h"
 
 BEGIN_C_DECLS
 

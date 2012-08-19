@@ -75,42 +75,4 @@ typedef struct {
     fz_int_t  (*compare)   (const fz_ptr_t self, const fz_ptr_t other);
 } fz_object_t;
 
-typedef struct {
-    fz_float_t x;
-    fz_float_t y;
-} fz_pointf_t;
-
-typedef struct {
-    const fz_ptr_t   _scp; // static class pointer
-    fz_ptr_t         items;
-    fz_uint_t        type_size;
-    fz_char_t       *type_name;
-    fz_uint_t        size;
-    fz_uint_t        avail_size;
-    fz_flags_t       flags;
-    fz_result_t    (*remove) (fz_ptr_t item);
-    fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
-} fz_list_t;
-
-typedef struct {
-    const fz_ptr_t  _scp;
-    fz_uint_t       state;
-    fz_list_t      *template;
-    fz_uint_t       version;
-} fz_form_t;
-
-typedef struct {
-    fz_amp_t    start;
-    fz_amp_t    end;
-    fz_pointf_t a;
-    fz_pointf_t b;
-} fz_curve_t;
-
-// multicurve curve
-typedef struct {
-    fz_form_t  *form;
-    fz_curve_t  curve;
-    fz_float_t  share;
-} fz_mccurve_t;
-
 #endif // _FZ_TYPES_H_

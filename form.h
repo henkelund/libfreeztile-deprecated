@@ -30,6 +30,7 @@
 #define _FZ_FORM_H_
 
 #include "types.h"
+#include "util/list.h"
 
 #ifndef FZ_NR_TOL
 #define FZ_NR_TOL 0.0001f
@@ -44,6 +45,32 @@
 
 #define FZ_FORM_STATE_NONE      0;
 #define FZ_FORM_STATE_APPLYING (1 << 0);
+
+typedef struct {
+    const fz_ptr_t  _scp;
+    fz_uint_t       state;
+    fz_list_t      *template;
+    fz_uint_t       version;
+} fz_form_t;
+
+typedef struct {
+    fz_float_t x;
+    fz_float_t y;
+} fz_pointf_t;
+
+typedef struct {
+    fz_amp_t    start;
+    fz_amp_t    end;
+    fz_pointf_t a;
+    fz_pointf_t b;
+} fz_curve_t;
+
+// multicurve curve
+typedef struct {
+    fz_form_t  *form;
+    fz_curve_t  curve;
+    fz_float_t  share;
+} fz_mccurve_t;
 
 /**
  *

@@ -35,6 +35,18 @@
 #define FZ_LIST_FLAG_NONE    0
 #define FZ_LIST_FLAG_RETAIN (1 << 0)
 
+typedef struct {
+    const fz_ptr_t   _scp; // static class pointer
+    fz_ptr_t         items;
+    fz_uint_t        type_size;
+    fz_char_t       *type_name;
+    fz_uint_t        size;
+    fz_uint_t        avail_size;
+    fz_flags_t       flags;
+    fz_result_t    (*remove) (fz_ptr_t item);
+    fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
+} fz_list_t;
+
 /**
  * Convenience macro for list creation
  *

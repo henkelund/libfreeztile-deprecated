@@ -31,6 +31,7 @@
 
 #include "../types.h"
 #include "producer.h"
+#include "../form.h"
 
 typedef struct {
     const fz_ptr_t  _class;

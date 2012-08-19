@@ -30,6 +30,7 @@
 #define _FZ_PRODUCER_H_
 
 #include "../freeztile.h"
+#include "../util/list.h"
 
 BEGIN_C_DECLS
 
