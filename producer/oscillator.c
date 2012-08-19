@@ -70,15 +70,15 @@ _fz_oscillator_produce(
     fz_real_t        frame;
 
     if (_self->descriptor == NULL || _self->sample_rate == 0 || _self->freq == 0.) {
-        return buffer->size;
+        return fz_list_size(buffer);
     }
 
     // sample rate divided by frequeny gives number of samples per period
     step_size = 1.f/(_self->sample_rate/_self->freq);
 
     // fill the frame progress buffer
-    fz_list_clear(_self->framebuf, buffer->size);
-    for (i = 0; i < buffer->size; ++i) {
+    fz_list_clear(_self->framebuf, fz_list_size(buffer));
+    for (i = 0; i < fz_list_size(buffer); ++i) {
         frame = _self->frame + _self->descriptor->phase;
         while (frame >= 1.) {
             frame -= 1.;
@@ -95,11 +95,11 @@ _fz_oscillator_produce(
         return -result;
     }
 
-    for (i = 0; i < buffer->size; ++i) {
+    for (i = 0; i < fz_list_size(buffer); ++i) {
         fz_list_val(buffer, i, fz_amp_t) *= _self->descriptor->amp;
     }
 
-    return buffer->size;
+    return fz_list_size(buffer);
 }
 
 static

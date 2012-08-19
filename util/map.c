@@ -71,7 +71,7 @@ _fz_map_destruct(fz_ptr_t self)
 
     for (i = 0; i < FZ_HASH_PRIME; ++i) {
         if (_self->table[i] != NULL) {
-            for (j = 0; j < _self->table[i]->size; ++j) {
+            for (j = 0; j < fz_list_size(_self->table[i]); ++j) {
                 value = fz_list_ref(_self->table[i], j, fz_map_item_t)->value;
                 if (_self->flags & FZ_MAP_FLAG_RETAIN) {
                     fz_release(*((fz_ptr_t*) value));
@@ -123,7 +123,7 @@ fz_map_set(
     }
     row = map->table[i];
 
-    for (i = 0; i < row->size; ++i) {
+    for (i = 0; i < fz_list_size(row); ++i) {
         if (strcmp(key, fz_list_ref(row, i, fz_map_item_t)->key) == 0) {
             cell = fz_list_ref(row, i, fz_map_item_t);
             if (map->flags & FZ_MAP_FLAG_RETAIN) {
@@ -137,7 +137,7 @@ fz_map_set(
     if (cell == NULL) { // No value found for given key -> allocate new container
         fz_map_item_t new_cell = {.key = NULL, .value = NULL};
         fz_list_append(row, &new_cell);
-        cell        = fz_list_ref(row, row->size - 1, fz_map_item_t);
+        cell        = fz_list_ref(row, fz_list_size(row) - 1, fz_map_item_t);
         cell->value = fz_malloc(map->type_size + sizeof (key) + 1);
         cell->key   = ((fz_char_t*) cell->value) + map->type_size;
         strcpy(cell->key, key);
@@ -168,7 +168,7 @@ fz_map_get(
     }
     row = map->table[i];
 
-    for (i = 0; i < row->size; ++i) {
+    for (i = 0; i < fz_list_size(row); ++i) {
         if (strcmp(key, fz_list_ref(row, i, fz_map_item_t)->key) == 0) {
             return fz_list_ref(row, i, fz_map_item_t)->value;
         }
@@ -191,7 +191,7 @@ fz_map_uns(
     }
     row = map->table[i];
 
-    for (i = 0; i < row->size; ++i) {
+    for (i = 0; i < fz_list_size(row); ++i) {
         if (strcmp(key, fz_list_ref(row, i, fz_map_item_t)->key) == 0) {
             if (map->flags & FZ_MAP_FLAG_RETAIN) {
                 fz_release(*((fz_ptr_t*) fz_list_ref(row, i, fz_map_item_t)->value));
@@ -200,7 +200,7 @@ fz_map_uns(
             // key is freed along with value
             fz_list_remove(row, i);
             if (map->flags & FZ_MAP_FLAG_ITERABLE && map->iterator != NULL) {
-                for (j = 0; j < map->iterator->size; ++j) {
+                for (j = 0; j < fz_list_size(map->iterator); ++j) {
                     if (strcmp(key, fz_list_val(
                                 map->iterator, j, fz_map_item_t*)->key) == 0) {
                         fz_list_remove(map->iterator, j);

@@ -39,17 +39,17 @@ _fz_amplifier_filtrate(
     fz_uint_t       i     = 0;
 
     if (self->regulator != NULL) {
-        for (; i < buffer->size; ++i) {
+        for (; i < fz_list_size(buffer); ++i) {
             fz_list_val(buffer, i, fz_amp_t) *=
                     _self->level*fz_list_val(self->regulator, i, fz_real_t);
         }
     } else {
-        for (; i < buffer->size; ++i) {
+        for (; i < fz_list_size(buffer); ++i) {
             fz_list_val(buffer, i, fz_amp_t) *= _self->level;
         }
     }
 
-    return buffer->size;
+    return fz_list_size(buffer);
 }
 
 static

@@ -76,26 +76,26 @@ _fz_envelope_produce(
     fz_amp_t       amp;
 
     if (_self->state == FZ_ENV_SILENT || _self->descriptor == NULL) {
-        return buffer->size;
+        return fz_list_size(buffer);
     }
 
     curve = _self->descriptor->forms[_self->state];
 
-    for (i = 0; i < buffer->size; ++i, ++_self->frame) {
+    for (i = 0; i < fz_list_size(buffer); ++i, ++_self->frame) {
         if (_self->frame >= _self->descriptor->durations[_self->state]) {
             switch (_self->state) {
                 case FZ_ENV_SUSTAIN:
-                    amp = curve->template->size > 0 ?
-                            fz_list_val(
-                                curve->template, curve->template->size - 1, fz_amp_t)
+                    amp = fz_list_size(curve->template) > 0 ?
+                            fz_list_val(curve->template,
+                                        fz_list_size(curve->template) - 1, fz_amp_t)
                             :
                             (i > 0 ? fz_list_val(buffer, i - 1, fz_amp_t) : 0.0);
-                    for (; i < buffer->size; ++i) {
+                    for (; i < fz_list_size(buffer); ++i) {
                         fz_list_val(buffer, i, fz_amp_t) = amp;
                     }
                     break;
                 case FZ_ENV_RELEASE:
-                    for (; i < buffer->size; ++i) {
+                    for (; i < fz_list_size(buffer); ++i) {
                         fz_list_val(buffer, i, fz_amp_t) = 0.0;
                     }
                     _self->state = FZ_ENV_SILENT;
@@ -107,16 +107,16 @@ _fz_envelope_produce(
             }
         }
 
-        if (i == buffer->size) {
+        if (i == fz_list_size(buffer)) {
             break;
         }
 
         frame = (fz_uint_t) ((((fz_real_t) _self->frame) /
                                 _self->descriptor->durations[_self->state]) *
-                                    curve->template->size);
+                                        fz_list_size(curve->template));
 
-        if (frame == curve->template->size) {
-            if (curve->template->size > 0) {
+        if (frame == fz_list_size(curve->template)) {
+            if (fz_list_size(curve->template) > 0) {
                 --frame;
             } else {
                 continue;
@@ -134,11 +134,11 @@ _fz_envelope_produce(
         }
     }
 
-    if (buffer->size > 0 && _self->state != FZ_ENV_RELEASE) {
+    if (fz_list_size(buffer) > 0 && _self->state != FZ_ENV_RELEASE) {
         _self->factor = fz_list_val(buffer, i - 1, fz_amp_t);
     }
 
-    return buffer->size;
+    return fz_list_size(buffer);
 }
 
 static

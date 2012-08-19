@@ -51,7 +51,9 @@ _fz_synthesizer_construct(
     _self->flags            = FZ_NOTE_STEAL_POLICY_NOSTEAL;
 
     // Add an oscillator to the note voice with a sample form
-    fz_list_append_release(_self->voice, fz_new(fz_oscdesc), osc, fz_oscdesc_t*);
+    fz_oscdesc_t *osc = fz_new(fz_oscdesc);
+    fz_list_append(_self->voice, &osc);
+    fz_release(osc);
     fz_list_t *multicurve = fz_list_new(fz_mccurve_t);
     fz_mccurve_t mccurve = {
       .form  = NULL,
@@ -82,7 +84,7 @@ _fz_synthesizer_construct(
     // Now the curve is rasterized to the oscillator form template
     // so we can free the curve descriptors
     fz_size_t i = 0;
-    for (; i < multicurve->size; ++i) {
+    for (; i < fz_list_size(multicurve); ++i) {
         // free sub curve cache
         fz_release(fz_list_ref(multicurve, i, fz_mccurve_t)->form);
     }
@@ -132,11 +134,11 @@ fz_synthesizer_output(
 
     fz_list_clear(synth->ob, num_frames);
 
-    if (!synth->active_notes->size > 0) {
+    if (!fz_list_size(synth->active_notes) > 0) {
         return synth->ob;
     }
 
-    for (i = 0; i < synth->active_notes->size; ++i) {
+    for (i = 0; i < fz_list_size(synth->active_notes); ++i) {
         note              = fz_list_val(synth->active_notes, i, fz_note_t*);
         note->voice       = synth->voice;
         note->sample_rate = synth->sample_rate;
@@ -173,7 +175,7 @@ fz_synthesizer_set_polyphony(
             }
         } else {
             note = fz_clone(fz_list_val(
-                                (synth->note_pool->size > 0 ?
+                                (fz_list_size(synth->note_pool) > 0 ?
                                         synth->note_pool
                                         :
                                         synth->active_notes),
@@ -184,10 +186,11 @@ fz_synthesizer_set_polyphony(
     }
 
     for (; current_level > level; --current_level) {
-        if (synth->note_pool->size > 0) {
-            fz_list_remove(synth->note_pool, synth->note_pool->size - 1);
+        if (fz_list_size(synth->note_pool) > 0) {
+            fz_list_remove(synth->note_pool, fz_list_size(synth->note_pool) - 1);
         } else {
-            fz_list_remove(synth->active_notes, synth->active_notes->size - 1);
+            fz_list_remove(
+                    synth->active_notes, fz_list_size(synth->active_notes) - 1);
         }
     }
 
@@ -197,7 +200,7 @@ fz_synthesizer_set_polyphony(
 fz_uint_t
 fz_synthesizer_get_polyphony(fz_synthesizer_t *synth)
 {
-    return synth->note_pool->size + synth->active_notes->size;
+    return fz_list_size(synth->note_pool) + fz_list_size(synth->active_notes);
 }
 
 fz_note_t*
@@ -208,16 +211,17 @@ fz_synthesizer_play(
 {
     fz_note_t *note = NULL;
 
-    if (synth->note_pool->size > 0) {
+    if (fz_list_size(synth->note_pool) > 0) {
 
-        note = fz_list_val(synth->note_pool, synth->note_pool->size - 1, fz_note_t*);
+        note = fz_list_val(synth->note_pool,
+                                fz_list_size(synth->note_pool) - 1, fz_note_t*);
         fz_retain(note);
-        fz_list_remove(synth->note_pool, synth->note_pool->size - 1);
+        fz_list_remove(synth->note_pool, fz_list_size(synth->note_pool) - 1);
 
     } else {
 
         if (synth->flags & FZ_NOTE_STEAL_POLICY_FIFO &&
-                synth->active_notes->size > 0) {
+                fz_list_size(synth->active_notes) > 0) {
 
             note = fz_list_val(synth->active_notes, 0, fz_note_t*);
             fz_retain(note);

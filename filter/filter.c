@@ -71,7 +71,8 @@ fz_filtrate(
         return -FZ_RESULT_INVALID_ARG;
     }
 
-    if (_filter->regulator != NULL && _filter->regulator->size < buffer->size) {
+    if (_filter->regulator != NULL &&
+            fz_list_size(_filter->regulator) < fz_list_size(buffer)) {
         _filter->regulator = NULL;
     }
 

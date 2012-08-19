@@ -34,6 +34,18 @@
 
 // ### PRIVATE ###
 
+struct fz_list_s {
+    const fz_ptr_t   _scp; // static class pointer
+    fz_ptr_t         items;
+    fz_uint_t        type_size;
+    fz_char_t       *type_name;
+    fz_uint_t        size;
+    fz_uint_t        avail_size;
+    fz_flags_t       flags;
+    fz_result_t    (*remove) (fz_ptr_t item);
+    fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
+};
+
 static
 fz_ptr_t
 _fz_list_construct(
@@ -151,6 +163,48 @@ static const fz_object_t _fz_list = {
 // ### PUBLIC ###
 
 const fz_ptr_t fz_list = (const fz_ptr_t) &_fz_list;
+
+fz_uint_t
+fz_list_size(fz_list_t *list)
+{
+    return list->size;
+}
+
+fz_ptr_t
+fz_list_item(fz_list_t *list, fz_uint_t i)
+{
+    if (i >= list->size) {
+        return NULL;
+    }
+    return list->items + i*list->type_size;
+}
+
+fz_uint_t
+fz_list_type_size(fz_list_t *list)
+{
+    return list->type_size;
+}
+
+const fz_char_t*
+fz_list_type_name(fz_list_t *list)
+{
+    return list->type_name;
+}
+
+fz_flags_t
+fz_list_flags(fz_list_t *list)
+{
+    return list->flags;
+}
+
+fz_result_t
+fz_list_set_flags(
+                  fz_list_t  *list,
+                  fz_flags_t  flags)
+{
+    list->flags = flags;
+    return FZ_RESULT_SUCCESS;
+}
 
 fz_result_t
 fz_list_clear(
@@ -307,6 +361,20 @@ fz_list_concat(
     for (; i < osize; ++i) {
         fz_list_append(self, other->items + (i*other->type_size));
     }
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_set_compare_callback(fz_list_t *list, fz_ptr_t cmp)
+{
+    *((fz_ptr_t*)&list->compare) = cmp;
+    return FZ_RESULT_SUCCESS;
+}
+
+fz_result_t
+fz_list_set_remove_callback(fz_list_t *list, fz_ptr_t rm)
+{
+    *((fz_ptr_t*)&list->remove) = rm;
     return FZ_RESULT_SUCCESS;
 }
 

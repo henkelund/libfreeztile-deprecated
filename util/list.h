@@ -30,22 +30,14 @@
 #define _FZ_LIST_H_
 
 #include <string.h>
-#include "../types.h"
+#include "../freeztile.h"
+
+BEGIN_C_DECLS
 
 #define FZ_LIST_FLAG_NONE    0
 #define FZ_LIST_FLAG_RETAIN (1 << 0)
 
-typedef struct {
-    const fz_ptr_t   _scp; // static class pointer
-    fz_ptr_t         items;
-    fz_uint_t        type_size;
-    fz_char_t       *type_name;
-    fz_uint_t        size;
-    fz_uint_t        avail_size;
-    fz_flags_t       flags;
-    fz_result_t    (*remove) (fz_ptr_t item);
-    fz_int_t       (*compare)(const fz_ptr_t a, const fz_ptr_t b);
-} fz_list_t;
+typedef struct fz_list_s fz_list_t;
 
 /**
  * Convenience macro for list creation
@@ -75,7 +67,7 @@ typedef struct {
  * @return type
  */
 #define fz_list_val(list, i, type) \
-            (*(((type*)list->items) + i))
+            (*((type*) fz_list_item(list, i)))
 
 /**
  * Convenience macro for list item pointer retrieval
@@ -86,7 +78,7 @@ typedef struct {
  * @return *type
  */
 #define fz_list_ref(list, i, type) \
-            (((type*)list->items) + i)
+            ((type*) fz_list_item(list, i))
 
 /**
  * Convenience macro for list type checking
@@ -96,36 +88,8 @@ typedef struct {
  * @return bool       True if type matches
  */
 #define fz_list_type(list, type) \
-            (list->type_size == sizeof(type) && strcmp(list->type_name, #type) == 0)
-
-/**
- * Helper macro for giving item ownership to retaining object type lists
- *
- * @param  list
- * @param  item
- * @param  pos
- * @param  capture variable name
- * @param  type
- * @return
- */
-#define fz_list_insert_release(list, item, pos, capture, type) \
-            type capture = item; fz_uint_t capture ## _pos = pos; \
-            capture = (fz_list_insert(list, &capture, pos) == FZ_RESULT_SUCCESS ? \
-                (fz_release(capture), fz_list_val(list, capture ## _pos, type)) : NULL)
-
-/**
- * Helper macro for giving item ownership to retaining object type lists
- *
- * @param  list
- * @param  item
- * @param  capture variable name
- * @param  type
- * @return
- */
-#define fz_list_append_release(list, item, capture, type) \
-            type capture = item; \
-            capture = (fz_list_insert(list, &capture, list->size) == FZ_RESULT_SUCCESS ? \
-                (fz_release(capture), fz_list_val(list, list->size - 1, type)) : NULL)
+            (fz_list_type_size(list) == sizeof(type) \
+                && strcmp(fz_list_type_name(list), #type) == 0)
 
 /**
  * Create a compare callback function for a primitive type
@@ -140,12 +104,58 @@ typedef struct {
 /**
  *
  * @param  fz_list_t *list
+ * @return fz_uint_t
+ */
+fz_uint_t        fz_list_size PARAMS((fz_list_t *list));
+
+/**
+ *
+ * @param  fz_list_t *list
+ * @param  fz_uint_t  i
+ * @return fz_ptr_t
+ */
+fz_ptr_t         fz_list_item PARAMS((fz_list_t *list, fz_uint_t i));
+
+/**
+ *
+ * @param  fz_list_t *list
+ * @return fz_uint_t
+ */
+fz_uint_t        fz_list_type_size PARAMS((fz_list_t *list));
+
+/**
+ *
+ * @param  fz_list_t *list
+ * @return const fz_char_t*
+ */
+const fz_char_t* fz_list_type_name PARAMS((fz_list_t *list));
+
+/**
+ *
+ * @param  fz_list_t *list
+ * @return fz_flags_t
+ */
+fz_flags_t       fz_list_flags PARAMS((fz_list_t *list));
+
+/**
+ *
+ * @param  fz_list_t  *list
+ * @param  fz_flags_t  flags
+ * @return fz_result_t
+ */
+fz_result_t      fz_list_set_flags PARAMS((
+                                           fz_list_t  *list,
+                                           fz_flags_t  flags));
+
+/**
+ *
+ * @param  fz_list_t *list
  * @param  fz_uint_t min_size
  * @return fz_result
  */
-fz_result_t fz_list_grow(
-                         fz_list_t *list,
-                         fz_uint_t  min_size);
+fz_result_t      fz_list_grow PARAMS((
+                                      fz_list_t *list,
+                                      fz_uint_t  min_size));
 
 /**
  *
@@ -153,9 +163,9 @@ fz_result_t fz_list_grow(
  * @param  fz_uint_t size
  * @return fz_result
  */
-fz_result_t fz_list_clear(
-                          fz_list_t *list,
-                          fz_uint_t  size);
+fz_result_t      fz_list_clear PARAMS((
+                                       fz_list_t *list,
+                                       fz_uint_t  size));
 
 /**
  *
@@ -164,10 +174,10 @@ fz_result_t fz_list_clear(
  * @param  fz_uint_t    pos
  * @return fz_result_t
  */
-fz_result_t fz_list_insert(
-                           fz_list_t *list,
-                           fz_ptr_t   item,
-                           fz_uint_t  pos);
+fz_result_t      fz_list_insert PARAMS((
+                                        fz_list_t *list,
+                                        fz_ptr_t   item,
+                                        fz_uint_t  pos));
 
 /**
  *
@@ -175,9 +185,9 @@ fz_result_t fz_list_insert(
  * @param  fz_ptr_t     item
  * @return fz_result_t
  */
-fz_result_t fz_list_append(
-                           fz_list_t *list,
-                           fz_ptr_t   item);
+fz_result_t      fz_list_append PARAMS((
+                                        fz_list_t *list,
+                                        fz_ptr_t   item));
 
 /**
  *
@@ -185,9 +195,9 @@ fz_result_t fz_list_append(
  * @param  fz_uint_t    pos
  * @return fz_result_t
  */
-fz_result_t fz_list_remove(
-                           fz_list_t *list,
-                           fz_uint_t  pos);
+fz_result_t      fz_list_remove PARAMS((
+                                        fz_list_t *list,
+                                        fz_uint_t  pos));
 
 /**
  *
@@ -196,10 +206,10 @@ fz_result_t fz_list_remove(
  * @param  fz_uint_t    i2
  * @return fz_result_t
  */
-fz_result_t fz_list_swap(
-                         fz_list_t *list,
-                         fz_uint_t  i1,
-                         fz_uint_t  i2);
+fz_result_t      fz_list_swap PARAMS((
+                                      fz_list_t *list,
+                                      fz_uint_t  i1,
+                                      fz_uint_t  i2));
 
 /**
  *
@@ -207,24 +217,46 @@ fz_result_t fz_list_swap(
  * @param  fz_list_t   *other
  * @return fz_result_t
  */
-fz_result_t fz_list_concat(
-                           fz_list_t *self,
-                           fz_list_t *other);
+fz_result_t      fz_list_concat PARAMS((
+                                        fz_list_t *self,
+                                        fz_list_t *other));
+
+/**
+ *
+ * @param  fz_list_t   *list
+ * @param  fz_ptr_t    *cmp
+ * @return fz_result_t
+ */
+fz_result_t      fz_list_set_compare_callback PARAMS((
+                                                      fz_list_t *list,
+                                                      fz_ptr_t   cmp));
+
+/**
+ *
+ * @param  fz_list_t   *list
+ * @param  fz_ptr_t    *rm
+ * @return fz_result_t
+ */
+fz_result_t      fz_list_set_remove_callback PARAMS((
+                                                     fz_list_t *list,
+                                                     fz_ptr_t   rm));
 
 /**
  *
  * @param  fz_list_t   *list
  * @return fz_result_t
  */
-fz_result_t fz_list_sort(fz_list_t *list);
+fz_result_t      fz_list_sort PARAMS((fz_list_t *list));
 
 /**
  *
  * @param  fz_list_t   *list
  * @return fz_result_t
  */
-fz_result_t fz_list_rsort(fz_list_t *list);
+fz_result_t      fz_list_rsort PARAMS((fz_list_t *list));
 
 const fz_ptr_t fz_list;
+
+END_C_DECLS
 
 #endif // _FZ_LIST_H_

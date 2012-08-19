@@ -132,7 +132,7 @@ BEGIN_C_DECLS
  * @return int
  */
 #define fz_map_size(map) \
-            (map->iterator != NULL ? map->iterator->size : 0)
+            (map->iterator != NULL ? fz_list_size(map->iterator) : 0)
 
 /**
  * Macro for giving value ownership to retaining object type maps

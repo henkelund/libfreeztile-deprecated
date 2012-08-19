@@ -48,8 +48,8 @@ _fz_note_sync(fz_note_t *note)
     if (note->voice == NULL) {
         return FZ_RESULT_SUCCESS;
     }
-    for (i = 0; i < note->voice->size; ++i) {
-        if (i == note->oscillators->size) {
+    for (i = 0; i < fz_list_size(note->voice); ++i) {
+        if (i == fz_list_size(note->oscillators)) {
             oscillator = fz_new(fz_oscillator);
             fz_list_append(note->oscillators, &oscillator);
             fz_release(oscillator);
@@ -77,9 +77,9 @@ _fz_note_produce(
         return result;
     } else if (_self->freq > 0) {
 
-        fz_list_clear(_self->ob, buffer->size);
+        fz_list_clear(_self->ob, fz_list_size(buffer));
 
-        for (i = 0; i < _self->oscillators->size; ++i) {
+        for (i = 0; i < fz_list_size(_self->oscillators); ++i) {
             oscillator              = fz_list_val(
                                             _self->oscillators, i, fz_oscillator_t*);
             oscillator->sample_rate = _self->sample_rate;
@@ -94,7 +94,7 @@ _fz_note_produce(
             envelope = fz_map_val(_self->envelopes,
                             fz_map_ikey(_self->filters, i), fz_envelope_t*);
             if (envelope) {
-                fz_list_clear(_self->env_ob, _self->ob->size);
+                fz_list_clear(_self->env_ob, fz_list_size(_self->ob));
                 fz_produce(envelope, _self->env_ob);
                 filter->regulator = _self->env_ob;
             } else {
@@ -104,7 +104,7 @@ _fz_note_produce(
             fz_filtrate(fz_map_ival(_self->filters, i, fz_filter_t*), _self->ob);
         }
 
-        for (i = 0; i < buffer->size; ++i) {
+        for (i = 0; i < fz_list_size(buffer); ++i) {
             fz_list_val(buffer, i, fz_amp_t) +=
                     fz_list_val(_self->ob, i, fz_amp_t);
         }
@@ -167,9 +167,9 @@ _fz_note_clone(const fz_ptr_t self)
     fz_note_t *clone = fz_new(fz_note);
 
     // Do malloc stuff. Better to do it here than "just in time" in produce callback
-    fz_list_grow(clone->oscillators, _self->oscillators->size);
-    fz_list_grow(clone->ob,          _self->ob->size);
-    fz_list_grow(clone->env_ob,      _self->env_ob->size);
+    fz_list_grow(clone->oscillators, fz_list_size(_self->oscillators));
+    fz_list_grow(clone->ob,          fz_list_size(_self->ob));
+    fz_list_grow(clone->env_ob,      fz_list_size(_self->env_ob));
 
     clone->voice       = _self->voice;
     clone->sample_rate = _self->sample_rate;

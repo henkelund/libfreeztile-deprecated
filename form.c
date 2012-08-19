@@ -83,10 +83,11 @@ fz_form_apply(
         return FZ_RESULT_INVALID_ARG;
     }
 
-    if (form->template->size > 0) {
-        for (i = 0; i < frames->size && i < amplitudes->size; ++i) {
+    if (fz_list_size(form->template) > 0) {
+        for (i = 0; i < fz_list_size(frames) && i < fz_list_size(amplitudes); ++i) {
             frame = (fz_uint_t)
-                    (fz_list_val(frames, i, fz_frame_t) * form->template->size);
+                        (fz_list_val(frames, i, fz_frame_t) *
+                                        fz_list_size(form->template));
             fz_list_val(amplitudes, i, fz_amp_t) +=
                     fz_list_val(form->template, frame, fz_amp_t);
         }
@@ -126,8 +127,8 @@ fz_curve_render(
     c3y = curve->end-curve->start+(3*curve->a.y)-(3*curve->b.y);
 
     // render it
-    for (i = 0; i < form->template->size; ++i) {
-        t = pos = ((float) i)/form->template->size; // first approximation of t = x
+    for (i = 0; i < fz_list_size(form->template); ++i) {
+        t = pos = ((float) i)/fz_list_size(form->template); // first approx of t = x
         d = 1;
         f = (t > 0.f ? 1 : 0);
         while (fabs(f/d) > FZ_NR_TOL) {
@@ -165,10 +166,10 @@ fz_multicurve_normalize_shares(
     }
 
     total_share = 0.f;
-    for (i = 0; i < multicurve->size; ++i) {
+    for (i = 0; i < fz_list_size(multicurve); ++i) {
         total_share += fz_list_ref(multicurve, i, fz_mccurve_t)->share;
     }
-    for (i = 0; i < multicurve->size; ++i) {
+    for (i = 0; i < fz_list_size(multicurve); ++i) {
         fz_list_ref(multicurve, i, fz_mccurve_t)->share /= total_share;
     }
 
@@ -187,7 +188,7 @@ fz_multicurve_render(
         return result;
     }
     offset = 0;
-    for (i = 0; i < multicurve->size; ++i) {
+    for (i = 0; i < fz_list_size(multicurve); ++i) {
         mccurve = fz_list_ref(multicurve, i, fz_mccurve_t);
         // create curve cache form if NULL
         if (mccurve->form == NULL) {
@@ -196,7 +197,7 @@ fz_multicurve_render(
         // make room for form
         if ((result = fz_list_clear(
                 mccurve->form->template,
-                form->template->size)) != FZ_RESULT_SUCCESS) {
+                fz_list_size(form->template))) != FZ_RESULT_SUCCESS) {
             return result;
         }
         // render
@@ -205,14 +206,15 @@ fz_multicurve_render(
             return result;
         }
 
-        size = form->template->size*mccurve->share;
+        size = fz_list_size(form->template)*mccurve->share;
         for (j = 0; j < size; ++j) {
             // maybe find average instead?
-            k = (fz_uint_t)((((fz_float_t)j)/size)*mccurve->form->template->size);
+            k = (fz_uint_t)((((fz_float_t)j)/size)*
+                    fz_list_size(mccurve->form->template));
             fz_list_val(form->template, offset + j, fz_amp_t) =
                     fz_list_val(mccurve->form->template, k, fz_amp_t);
         }
-        offset += mccurve->share*form->template->size;
+        offset += mccurve->share*fz_list_size(form->template);
     }
     return FZ_RESULT_SUCCESS;
 }

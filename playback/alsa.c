@@ -71,14 +71,14 @@ _fz_playback_alsa_play(fz_playback_adapter_t *self)
     fz_playback_adapter_lock(self);
     output = fz_retain(fz_synthesizer_output(synth, num_frames));
 
-    if (output->size != num_frames) {
+    if (fz_list_size(output) != num_frames) {
         fz_release(output);
         fz_playback_adapter_unlock(self);
         return 0;
     }
 
     if ((err = snd_pcm_writei(
-            _self->playback_handle, output->items, num_frames)) < 0) {
+            _self->playback_handle, fz_list_item(output, 0), num_frames)) < 0) {
         fzdebug("write failed (%s)\n", snd_strerror(err));
     }
 
