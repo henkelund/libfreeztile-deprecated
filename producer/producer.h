@@ -35,11 +35,24 @@
 BEGIN_C_DECLS
 
 typedef struct fz_producer_s {
-    const fz_ptr_t   _class;
-    fz_int_t       (*produce)(struct fz_producer_s *self, fz_list_t *buffer);
+    const fz_ptr_t _class;
+    const fz_ptr_t _private;
 } fz_producer_t;
 
 const fz_ptr_t fz_producer;
+
+/**
+ * Call from producer implementing constructor
+ *
+ * @param  fz_ptr_t producer
+ * @param  fz_ptr_t produce_fnc
+ * @param  fz_ptr_t prepare_fnc
+ * @return fz_result_t
+ */
+fz_result_t _fz_producer_init PARAMS((
+                                      fz_ptr_t producer,
+                                      fz_ptr_t produce_fnc,
+                                      fz_ptr_t prepare_fnc));
 
 /**
  *

@@ -120,7 +120,10 @@ _fz_note_construct(
                    va_list        *args)
 {
     (void) args;
-    fz_note_t *_self   = (fz_note_t*) self;
+    fz_note_t *_self   = (fz_note_t*)
+                                ((const fz_object_t*) fz_producer)
+                                    ->construct(self, args);
+    _fz_producer_init(_self, _fz_note_produce, NULL);
     _self->oscillators = fz_list_new_flags(fz_oscillator_t*, FZ_LIST_FLAG_RETAIN);
     _self->voice       = NULL;
     _self->freq        = 0;
@@ -139,8 +142,6 @@ _fz_note_construct(
     fz_amplifier_t *amp = fz_new(fz_amplifier);
     fz_map_set_noretain(_self->filters, FZ_AMPLIFIER_KEY, &amp);
 
-    ((fz_producer_t*) self)->produce = _fz_note_produce;
-
     return _self;
 }
 
@@ -155,8 +156,7 @@ _fz_note_destruct(fz_ptr_t self)
     fz_release(_self->env_ob);
     fz_release(_self->filters);
     // synthesizer is responsible for _self->voice
-
-    return _self;
+    return ((const fz_object_t*) fz_producer)->destruct(_self);
 }
 
 static

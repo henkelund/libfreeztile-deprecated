@@ -109,14 +109,15 @@ _fz_oscillator_construct(
                          va_list        *args)
 {
     (void) args;
-    fz_oscillator_t *_self = (fz_oscillator_t*) self;
+    fz_oscillator_t *_self = (fz_oscillator_t*)
+                                ((const fz_object_t*) fz_producer)
+                                    ->construct(self, args);
+    _fz_producer_init(_self, _fz_oscillator_produce, NULL);
     _self->descriptor      = NULL;
     _self->frame           = 0;
     _self->framebuf        = fz_list_new(fz_frame_t);
     _self->freq            = 0;
     _self->sample_rate     = 0;
-
-    ((fz_producer_t*) self)->produce = _fz_oscillator_produce;
 
     return _self;
 }
@@ -127,7 +128,7 @@ _fz_oscillator_destruct(fz_ptr_t self)
 {
     fz_oscillator_t *_self = (fz_oscillator_t*) self;
     fz_release(_self->framebuf);
-    return _self;
+    return ((const fz_object_t*) fz_producer)->destruct(_self);
 }
 
 static const fz_object_t _fz_oscdesc = {

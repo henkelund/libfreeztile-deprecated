@@ -146,7 +146,10 @@ fz_ptr_t
 _fz_envelope_construct(fz_ptr_t  self,
                        va_list  *args)
 {
-    fz_envelope_t *_self = (fz_envelope_t*) self;
+    fz_envelope_t *_self = (fz_envelope_t*)
+                                ((const fz_object_t*) fz_producer)
+                                    ->construct(self, args);
+    _fz_producer_init(_self, _fz_envelope_produce, NULL);
     _self->descriptor    = va_arg(*args, fz_envdesc_t*);
     _self->state         = FZ_ENV_SILENT;
     _self->frame         = 0;
@@ -155,8 +158,6 @@ _fz_envelope_construct(fz_ptr_t  self,
     if (_self->descriptor) {
         fz_retain(_self->descriptor);
     }
-
-    ((fz_producer_t*) self)->produce = _fz_envelope_produce;
 
     return _self;
 }
@@ -169,7 +170,7 @@ _fz_envelope_destruct(fz_ptr_t self)
     if (_self->descriptor != NULL) {
         fz_release(_self->descriptor);
     }
-    return _self;
+    return ((const fz_object_t*) fz_producer)->destruct(_self);
 }
 
 static const fz_object_t _fz_envdesc = {
